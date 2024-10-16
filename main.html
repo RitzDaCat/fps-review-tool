@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FPS Gameplay Review Tool</title>
+<style>
+  /* Modern UI/UX styles */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  #video-container {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  #controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  #controls button {
+    margin: 0 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  #controls button:hover {
+    background-color: #505050;
+  }
+
+  #comment-input {
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    display: none;
+    flex-direction: column;
+  }
+
+  #comment-input textarea {
+    width: 100%;
+    height: 80px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #2e2e2e;
+    border: none;
+    color: #ffffff;
+  }
+
+  #comment-input select, #comment-input input[type="text"] {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #2e2e2e;
+    border: none;
+    color: #ffffff;
+  }
+
+  #comment-input button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-right: 10px;
+    background-color: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  #comment-input button:hover {
+    background-color: #505050;
+  }
+
+  #comments {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .comment {
+    background-color: #2e2e2e;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 5px solid;
+    display: flex;
+    align-items: center;
+  }
+
+  .comment .icon {
+    font-size: 24px;
+    margin-right: 10px;
+  }
+
+  .comment .content {
+    flex: 1;
+  }
+
+  .timestamp {
+    color: #888;
+    font-size: 0.9em;
+  }
+
+  .author-name {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-top: 5px;
+  }
+
+  /* Color codes for categories */
+  .movement {
+    border-color: #1abc9c;
+  }
+
+  .crosshair {
+    border-color: #e74c3c;
+  }
+
+  .teamplay {
+    border-color: #3498db;
+  }
+
+  /* Icons for categories */
+  .movement .icon::before {
+    content: '🏃';
+  }
+
+  .crosshair .icon::before {
+    content: '🎯';
+  }
+
+  .teamplay .icon::before {
+    content: '🤝';
+  }
+
+  /* Other styles */
+  #youtube-url {
+    width: 80%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #2e2e2e;
+    border: none;
+    color: #ffffff;
+  }
+
+  #load-video {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  #load-video:hover {
+    background-color: #505050;
+  }
+
+  #export-import {
+    max-width: 800px;
+    margin: 20px auto;
+  }
+
+  #export-import button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    background-color: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  #export-import button:hover {
+    background-color: #505050;
+  }
+
+  textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    background-color: #2e2e2e;
+    border: none;
+    color: #ffffff;
+  }
+
+  #export-area, #import-area {
+    margin-top: 10px;
+  }
+
+  /* Author selection */
+  #author-selection {
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+    display: none;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #author-selection select {
+    padding: 10px;
+    background-color: #2e2e2e;
+    border: none;
+    color: #ffffff;
+    margin-left: 10px;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    #video-container iframe {
+      width: 100%;
+      height: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>FPS Gameplay Review Tool</h1>
+
+<div style="text-align: center;">
+  <input type="text" id="youtube-url" placeholder="Enter YouTube video URL">
+  <button id="load-video">Load Video</button>
+</div>
+
+<div id="video-container">
+  <iframe id="video-player" width="640" height="390" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<div id="controls" style="display:none;">
+  <button id="add-comment">Add Comment</button>
+</div>
+
+<div id="author-selection" style="display:none;">
+  <label for="author-filter">Select Author:</label>
+  <select id="author-filter"></select>
+</div>
+
+<div id="comment-input">
+  <textarea id="comment-text" placeholder="Enter your comment here..."></textarea>
+  <select id="comment-category">
+    <option value="movement">Movement</option>
+    <option value="crosshair">Crosshair Placement</option>
+    <option value="teamplay">Teamplay</option>
+  </select>
+  <input type="text" id="comment-timestamp" placeholder="Timestamp (e.g., 1:23)">
+  <input type="text" id="comment-author" placeholder="Your name (optional)">
+  <div>
+    <button id="save-comment">Save Comment</button>
+    <button id="cancel-comment">Cancel</button>
+  </div>
+</div>
+
+<div id="comment-section">
+  <h2>Comments</h2>
+  <div id="comments"></div>
+</div>
+
+<div id="export-import">
+  <h2>Export/Import Comments</h2>
+  <button id="export-comments">Export Comments</button>
+  <button id="import-comments">Import Comments</button>
+  <div id="import-area" style="display:none;">
+    <textarea id="import-text" placeholder="Paste exported comments here..."></textarea><br>
+    <button id="load-imported-comments">Load Comments</button>
+    <button id="cancel-import">Cancel</button>
+  </div>
+  <div id="export-area" style="display:none;">
+    <textarea id="export-text" readonly></textarea><br>
+    <button id="close-export">Close</button>
+  </div>
+</div>
+
+<script>
+  let allComments = []; // List of all comments
+  let videoId = '';
+
+  // Load the YouTube video
+  document.getElementById('load-video').addEventListener('click', function() {
+    const url = document.getElementById('youtube-url').value;
+    const newVideoId = extractVideoID(url);
+    if (newVideoId) {
+      videoId = newVideoId;
+      loadYouTubeVideo(videoId);
+      loadComments();
+    } else {
+      alert('Please enter a valid YouTube URL.');
+    }
+  });
+
+  // Extract YouTube video ID from URL
+  function extractVideoID(url) {
+    const regex = /(?:\?v=|\/embed\/|\.be\/)([^&#?]+)/;
+    const match = url.match(regex);
+    return match && match[1] ? match[1] : null;
+  }
+
+  // Load YouTube Player
+  function loadYouTubeVideo(videoId) {
+    const videoPlayer = document.getElementById('video-player');
+    videoPlayer.src = 'https://www.youtube.com/embed/' + videoId;
+    document.getElementById('controls').style.display = 'flex';
+    document.getElementById('author-selection').style.display = 'flex';
+  }
+
+  // Add comment
+  document.getElementById('add-comment').addEventListener('click', function() {
+    document.getElementById('comment-input').style.display = 'flex';
+    document.getElementById('comment-text').focus();
+  });
+
+  // Save comment
+  document.getElementById('save-comment').addEventListener('click', function() {
+    const text = document.getElementById('comment-text').value.trim();
+    const category = document.getElementById('comment-category').value;
+    const timestampInput = document.getElementById('comment-timestamp').value.trim();
+    const author = document.getElementById('comment-author').value.trim() || 'Anonymous';
+
+    if (text && timestampInput) {
+      const timestamp = parseTimestamp(timestampInput);
+      if (timestamp !== null) {
+        const comment = {
+          time: timestamp,
+          text: text,
+          category: category,
+          author: author
+        };
+        allComments.push(comment);
+        allComments.sort((a, b) => a.time - b.time);
+        saveComments();
+        document.getElementById('comment-text').value = '';
+        document.getElementById('comment-timestamp').value = '';
+        document.getElementById('comment-author').value = '';
+        document.getElementById('comment-input').style.display = 'none';
+        updateAuthorFilter();
+        displayComments();
+      } else {
+        alert('Please enter a valid timestamp (e.g., 1:23 or 0:45)');
+      }
+    } else {
+      alert('Comment and timestamp cannot be empty.');
+    }
+  });
+
+  // Cancel comment
+  document.getElementById('cancel-comment').addEventListener('click', function() {
+    document.getElementById('comment-text').value = '';
+    document.getElementById('comment-timestamp').value = '';
+    document.getElementById('comment-author').value = '';
+    document.getElementById('comment-input').style.display = 'none';
+  });
+
+  // Parse timestamp input (e.g., "1:23" to seconds)
+  function parseTimestamp(input) {
+    const parts = input.split(':').map(part => parseInt(part.trim(), 10));
+    if (parts.length === 2) {
+      const [minutes, seconds] = parts;
+      if (!isNaN(minutes) && !isNaN(seconds)) {
+        return minutes * 60 + seconds;
+      }
+    } else if (parts.length === 3) {
+      const [hours, minutes, seconds] = parts;
+      if (!isNaN(hours) && !isNaN(minutes) && !isNaN(seconds)) {
+        return hours * 3600 + minutes * 60 + seconds;
+      }
+    }
+    return null;
+  }
+
+  // Display comments
+  function displayComments() {
+    const selectedAuthor = document.getElementById('author-filter').value;
+    const commentDiv = document.getElementById('comments');
+    commentDiv.innerHTML = '';
+    const filteredComments = allComments.filter(comment => comment.author === selectedAuthor);
+    filteredComments.forEach(comment => {
+      const commentElem = createCommentElement(comment);
+      commentDiv.appendChild(commentElem);
+    });
+  }
+
+  // Create comment element
+  function createCommentElement(comment) {
+    const commentElem = document.createElement('div');
+    commentElem.className = 'comment ' + comment.category;
+
+    const iconElem = document.createElement('div');
+    iconElem.className = 'icon';
+
+    const contentElem = document.createElement('div');
+    contentElem.className = 'content';
+
+    const timeElem = document.createElement('div');
+    timeElem.className = 'timestamp';
+    timeElem.textContent = formatTime(comment.time);
+
+    const textElem = document.createElement('div');
+    textElem.textContent = comment.text;
+
+    const authorElem = document.createElement('div');
+    authorElem.className = 'author-name';
+    authorElem.textContent = 'By: ' + comment.author;
+
+    contentElem.appendChild(timeElem);
+    contentElem.appendChild(textElem);
+    contentElem.appendChild(authorElem);
+
+    commentElem.appendChild(iconElem);
+    commentElem.appendChild(contentElem);
+
+    return commentElem;
+  }
+
+  // Format time in HH:MM:SS
+  function formatTime(seconds) {
+    const sec_num = parseInt(seconds, 10);
+    const hours   = Math.floor(sec_num / 3600);
+    const minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    const secs = sec_num - (hours * 3600) - (minutes * 60);
+    return [hours, minutes, secs]
+      .map(v => v < 10 ? "0" + v : v)
+      .filter((v,i) => v !== "00" || i > 0)
+      .join(':');
+  }
+
+  // Export comments
+  document.getElementById('export-comments').addEventListener('click', function() {
+    if (!allComments.length) {
+      alert('No comments to export.');
+      return;
+    }
+    const data = JSON.stringify({
+      videoId: videoId,
+      comments: allComments
+    });
+    document.getElementById('export-text').value = data;
+    document.getElementById('export-area').style.display = 'block';
+  });
+
+  // Close export area
+  document.getElementById('close-export').addEventListener('click', function() {
+    document.getElementById('export-area').style.display = 'none';
+  });
+
+  // Import comments
+  document.getElementById('import-comments').addEventListener('click', function() {
+    document.getElementById('import-area').style.display = 'block';
+    document.getElementById('import-text').focus();
+  });
+
+  // Load imported comments
+  document.getElementById('load-imported-comments').addEventListener('click', function() {
+    const data = document.getElementById('import-text').value.trim();
+    try {
+      const importedData = JSON.parse(data);
+      if (importedData && importedData.videoId && importedData.comments && Array.isArray(importedData.comments)) {
+        if (importedData.videoId !== videoId) {
+          alert('The imported comments are for a different video.');
+          return;
+        }
+        allComments = allComments.concat(importedData.comments);
+        allComments.sort((a, b) => a.time - b.time);
+        saveComments();
+        updateAuthorFilter();
+        displayComments();
+        document.getElementById('import-area').style.display = 'none';
+        document.getElementById('import-text').value = '';
+      } else {
+        alert('Invalid data format.');
+      }
+    } catch (e) {
+      alert('Failed to parse comments. Make sure the data is correct.');
+    }
+  });
+
+  // Cancel import
+  document.getElementById('cancel-import').addEventListener('click', function() {
+    document.getElementById('import-area').style.display = 'none';
+    document.getElementById('import-text').value = '';
+  });
+
+  // Save comments to localStorage
+  function saveComments() {
+    const key = 'comments_' + videoId;
+    localStorage.setItem(key, JSON.stringify(allComments));
+  }
+
+  // Load comments from localStorage
+  function loadComments() {
+    const key = 'comments_' + videoId;
+    const storedComments = localStorage.getItem(key);
+    if (storedComments) {
+      allComments = JSON.parse(storedComments);
+    } else {
+      allComments = [];
+    }
+    updateAuthorFilter();
+    displayComments();
+  }
+
+  // Update author filter dropdown
+  function updateAuthorFilter() {
+    const authorFilter = document.getElementById('author-filter');
+    const authors = [...new Set(allComments.map(comment => comment.author))];
+    authorFilter.innerHTML = '';
+    authors.forEach(author => {
+      const option = document.createElement('option');
+      option.value = author;
+      option.textContent = author;
+      authorFilter.appendChild(option);
+    });
+    authorFilter.addEventListener('change', function() {
+      displayComments();
+    });
+    if (authors.length > 0) {
+      authorFilter.value = authors[0];
+    }
+  }
+
+</script>
+
+</body>
+</html>
