@@ -86,6 +86,7 @@
 
     .comment-item {
       position: relative;
+      padding-left: 50px;
     }
 
     .comment-emoji {
@@ -93,6 +94,14 @@
       top: 10px;
       left: 10px;
       font-size: 24px;
+    }
+
+    .comment-delete {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      color: #dc3545;
     }
 
     .comment-item.active {
@@ -112,23 +121,33 @@
       background-color: #f8e0e0; /* Light red */
     }
 
-    /* Toast Notification Styles */
-    #toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1055;
-    }
-
-    .toast {
-      min-width: 200px;
-    }
-
     /* Video Thumbnail */
     .video-thumbnail {
-      width: 120px;
-      height: 90px;
+      width: 100px;
+      height: 75px;
       object-fit: cover;
+    }
+
+    /* Video List in Sidebar */
+    #video-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    #video-list li {
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    #video-list li.active {
+      background-color: #e9ecef;
+    }
+
+    /* Adjust content when sidebar is visible */
+    @media (min-width: 992px) {
+      #content {
+        margin-left: 250px;
+      }
     }
   </style>
 </head>
@@ -161,6 +180,18 @@
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
+      <!-- Author Name Input -->
+      <div class="mb-3">
+        <label for="author-name" class="form-label">Author Name</label>
+        <input type="text" id="author-name" class="form-control" placeholder="Enter your name">
+      </div>
+      <!-- Video List -->
+      <h6>Loaded Videos</h6>
+      <ul id="video-list">
+        <!-- Videos will be dynamically added here -->
+      </ul>
+      <hr>
+      <h6>Settings</h6>
       <ul class="components list-unstyled">
         <li>
           <div class="form-check form-switch ms-2">
@@ -283,16 +314,58 @@
     </div>
   </div>
 
+  <!-- File Input for Importing Comments -->
+  <input type="file" id="import-file-input" accept=".json" style="display: none;">
+
+  <!-- LZ-String Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  
+
   <!-- Custom JavaScript Code -->
   <script>
-    (function() {
+    document.addEventListener('DOMContentLoaded', function() {
       'use strict';
 
       let playerReady = false;
       let player;
+      let currentVideoId = null;
+      let commentsData = {}; // { videoId: { authorName: [comments] } }
+
+      // Load data from localStorage
+      let loadedVideos = JSON.parse(localStorage.getItem('loadedVideos')) || [];
+      commentsData = JSON.parse(localStorage.getItem('commentsData')) || {};
+
+      // Initialize video list
+      function updateVideoList() {
+        const videoListElement = document.getElementById('video-list');
+        if (!videoListElement) {
+          console.error('Element with ID "video-list" not found.');
+          return;
+        }
+        videoListElement.innerHTML = '';
+        loadedVideos.forEach(video => {
+          const li = document.createElement('li');
+          li.classList.add('d-flex', 'align-items-center');
+          li.dataset.videoId = video.id;
+          li.innerHTML = `
+            <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail me-2">
+            <span>${video.title}</span>
+          `;
+          li.addEventListener('click', function() {
+            loadVideoById(video.id);
+            // Close the sidebar
+            const sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('sidebar'));
+            if (sidebar) sidebar.hide();
+          });
+          videoListElement.appendChild(li);
+        });
+      }
+      updateVideoList();
+
+      // Parse URL fragment for shared data
+      parseSharedDataFromURL();
 
       // Load New Video Button
       const loadVideoButton = document.getElementById('load-video-btn');
@@ -301,9 +374,17 @@
         if (videoInput) {
           const videoId = extractVideoId(videoInput);
           if (videoId) {
-            const iframe = document.getElementById('video-player');
-            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-            initPlayer();
+            fetchVideoDetails(videoId).then(videoDetails => {
+              // Check if video is already loaded
+              if (!loadedVideos.some(video => video.id === videoId)) {
+                loadedVideos.push(videoDetails);
+                localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+                updateVideoList();
+              }
+              loadVideoById(videoId);
+            }).catch(error => {
+              alert('Failed to load video details. Please check the video ID or URL.');
+            });
           } else {
             alert('Invalid YouTube Video ID or URL.');
           }
@@ -314,6 +395,47 @@
         const regex = /(?:\?v=|\/embed\/|\.be\/|\/v\/|\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
         const match = input.match(regex);
         return match ? match[1] : input;
+      }
+
+      function fetchVideoDetails(videoId) {
+        return new Promise((resolve, reject) => {
+          fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.error) {
+                reject(data.error);
+              } else {
+                const videoDetails = {
+                  id: videoId,
+                  title: data.title,
+                  thumbnail: data.thumbnail_url
+                };
+                resolve(videoDetails);
+              }
+            }).catch(error => {
+              reject(error);
+            });
+        });
+      }
+
+      function loadVideoById(videoId) {
+        currentVideoId = videoId;
+        const iframe = document.getElementById('video-player');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+        initPlayer();
+        updateActiveVideoInList(videoId);
+      }
+
+      function updateActiveVideoInList(videoId) {
+        const videoListElement = document.getElementById('video-list');
+        const videoItems = videoListElement.querySelectorAll('li');
+        videoItems.forEach(item => {
+          if (item.dataset.videoId === videoId) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
       }
 
       function initPlayer() {
@@ -343,25 +465,108 @@
 
       function onPlayerReady(event) {
         playerReady = true;
+        // Load comments for the current video
+        if (currentVideoId) {
+          loadCommentsForVideo(currentVideoId);
+        }
       }
 
       function onPlayerStateChange(event) {
         // Handle player state changes if needed
       }
 
+      // Parse shared data from URL fragment
+      function parseSharedDataFromURL() {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+          try {
+            const decodedData = LZString.decompressFromEncodedURIComponent(hash);
+            if (decodedData) {
+              const sharedData = JSON.parse(decodedData);
+              const videoId = sharedData.videoId;
+              const authorName = sharedData.author;
+              const importedComments = sharedData.comments;
+
+              // Add video to loadedVideos if not already present
+              if (!loadedVideos.some(video => video.id === videoId)) {
+                fetchVideoDetails(videoId).then(videoDetails => {
+                  loadedVideos.push(videoDetails);
+                  localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+                  updateVideoList();
+                  // Replace comments from the same author
+                  replaceComments(sharedData);
+                  loadVideoById(videoId);
+                }).catch(error => {
+                  alert('Failed to load video details from shared URL.');
+                });
+              } else {
+                // Replace comments from the same author
+                replaceComments(sharedData);
+                loadVideoById(videoId);
+              }
+
+              // Clear the URL fragment after processing
+              history.replaceState(null, '', window.location.pathname);
+            }
+          } catch (error) {
+            console.error('Error parsing shared data from URL:', error);
+          }
+        }
+      }
+
       // Save Comment Button in Modal
       const saveCommentButton = document.getElementById('save-comment-btn');
       saveCommentButton.addEventListener('click', function(event) {
         event.preventDefault();
+        if (!currentVideoId) {
+          alert('No video loaded.');
+          return;
+        }
+
+        const authorNameInput = document.getElementById('author-name');
+        const authorName = authorNameInput.value.trim() || 'Anonymous';
+
         const commentText = document.getElementById('comment-text').value;
         const commentSentiment = document.getElementById('comment-sentiment').value;
         const commentCategory = document.getElementById('comment-category').value;
         const commentTimestamp = document.getElementById('comment-timestamp').value;
+
+        // Create comment object
+        const comment = {
+          text: commentText,
+          sentiment: commentSentiment,
+          category: commentCategory,
+          timestamp: commentTimestamp,
+          author: authorName
+        };
+
+        // Save comment to commentsData
+        if (!commentsData[currentVideoId]) {
+          commentsData[currentVideoId] = {};
+        }
+        if (!commentsData[currentVideoId][authorName]) {
+          commentsData[currentVideoId][authorName] = [];
+        }
+        commentsData[currentVideoId][authorName].push(comment);
+        localStorage.setItem('commentsData', JSON.stringify(commentsData));
+
+        // Add comment to UI
+        addCommentToFeed(comment);
+
+        // Add marker to timeline
+        addTimelineMarker(comment.timestamp);
+
+        const commentModal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
+        commentModal.hide();
+        document.getElementById('comment-form').reset();
+      });
+
+      function addCommentToFeed(comment) {
         const commentFeed = document.getElementById('comment-feed');
 
         // Create comment card
         const commentItem = document.createElement('div');
-        commentItem.classList.add('list-group-item', 'comment-item', `sentiment-${commentSentiment}`);
+        commentItem.classList.add('list-group-item', 'comment-item', `sentiment-${comment.sentiment}`);
 
         // Get emoji based on category
         const categoryEmojis = {
@@ -369,49 +574,113 @@
           'crosshair': '🎯',
           'movement': '🏃'
         };
-        const emoji = categoryEmojis[commentCategory] || '';
+        const emoji = categoryEmojis[comment.category] || '';
 
         commentItem.innerHTML = `
           <div class="comment-emoji">${emoji}</div>
-          <div style="margin-left: 40px;">
-            <strong>${commentCategory.charAt(0).toUpperCase() + commentCategory.slice(1)}</strong> [${commentTimestamp}]<br>${commentText}
+          <div class="comment-delete" title="Delete Comment">&times;</div>
+          <div style="margin-left: 0;">
+            <strong>${capitalizeFirstLetter(comment.category)}</strong> [${comment.timestamp}]<br>
+            <em>By ${comment.author}</em><br>
+            ${comment.text}
           </div>
         `;
 
+        // Delete comment functionality
+        const deleteButton = commentItem.querySelector('.comment-delete');
+        deleteButton.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent triggering the comment click event
+          if (confirm('Are you sure you want to delete this comment?')) {
+            deleteComment(comment);
+            commentItem.remove();
+            // Update localStorage
+            localStorage.setItem('commentsData', JSON.stringify(commentsData));
+            // Reload comments and timeline markers
+            if (playerReady) {
+              loadCommentsForVideo(currentVideoId);
+            }
+          }
+        });
+
         commentItem.addEventListener('click', function() {
           if (player && playerReady) {
-            const timeInSeconds = parseTime(commentTimestamp);
+            const timeInSeconds = parseTime(comment.timestamp);
             player.seekTo(timeInSeconds, true);
           }
         });
 
         commentFeed.appendChild(commentItem);
+      }
 
-        // Add marker to timeline
-        addTimelineMarker(commentTimestamp);
+      function deleteComment(commentToDelete) {
+        const authorComments = commentsData[currentVideoId][commentToDelete.author];
+        const index = authorComments.findIndex(comment => {
+          return comment.text === commentToDelete.text &&
+                 comment.timestamp === commentToDelete.timestamp &&
+                 comment.category === commentToDelete.category &&
+                 comment.sentiment === commentToDelete.sentiment;
+        });
+        if (index !== -1) {
+          authorComments.splice(index, 1);
+          // If no comments left for the author, remove the author key
+          if (authorComments.length === 0) {
+            delete commentsData[currentVideoId][commentToDelete.author];
+            // If no authors left for the video, remove the video key
+            if (Object.keys(commentsData[currentVideoId]).length === 0) {
+              delete commentsData[currentVideoId];
+            }
+          }
+        }
+      }
 
-        const commentModal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
-        commentModal.hide();
-        document.getElementById('comment-form').reset();
-      });
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
 
       function addTimelineMarker(timestamp) {
         const timeInSeconds = parseTime(timestamp);
-        const videoDuration = player.getDuration();
+        if (player && player.getDuration && player.getDuration() > 0) {
+          const videoDuration = player.getDuration();
+          const timeline = document.getElementById('timeline');
+          const markerPosition = (timeInSeconds / videoDuration) * 100;
+
+          const marker = document.createElement('div');
+          marker.classList.add('timeline-marker');
+          marker.style.left = `${markerPosition}%`;
+
+          marker.addEventListener('click', function() {
+            if (player && playerReady) {
+              player.seekTo(timeInSeconds, true);
+            }
+          });
+
+          timeline.appendChild(marker);
+        } else {
+          // Wait and try again if duration is not yet available
+          setTimeout(() => addTimelineMarker(timestamp), 100);
+        }
+      }
+
+      function loadCommentsForVideo(videoId) {
+        const commentFeed = document.getElementById('comment-feed');
+        commentFeed.innerHTML = '';
         const timeline = document.getElementById('timeline');
-        const markerPosition = (timeInSeconds / videoDuration) * 100;
+        timeline.innerHTML = '';
 
-        const marker = document.createElement('div');
-        marker.classList.add('timeline-marker');
-        marker.style.left = `${markerPosition}%`;
-
-        marker.addEventListener('click', function() {
-          if (player && playerReady) {
-            player.seekTo(timeInSeconds, true);
+        if (commentsData[videoId]) {
+          for (let author in commentsData[videoId]) {
+            // Ensure that commentsData[videoId][author] is an array
+            const authorComments = commentsData[videoId][author];
+            if (Array.isArray(authorComments)) {
+              authorComments.forEach(comment => {
+                addCommentToFeed(comment);
+                addTimelineMarker(comment.timestamp);
+              });
+            } else {
+              console.error(`Comments for author ${author} are not an array:`, authorComments);
+            }
           }
-        });
-
-        timeline.appendChild(marker);
+        }
       }
 
       // Update Timestamp when Modal Opens
@@ -456,13 +725,23 @@
       });
 
       function navigateComments(direction) {
-        const comments = Array.from(document.getElementsByClassName('comment-item'));
-        if (comments.length === 0 || !playerReady) return;
+        let allComments = [];
+        if (commentsData[currentVideoId]) {
+          for (let author in commentsData[currentVideoId]) {
+            const authorComments = commentsData[currentVideoId][author];
+            if (Array.isArray(authorComments)) {
+              allComments = allComments.concat(authorComments);
+            } else {
+              console.error(`Comments for author ${author} are not an array:`, authorComments);
+            }
+          }
+        }
+
+        if (allComments.length === 0 || !playerReady) return;
 
         const currentTime = player.getCurrentTime();
-        const sortedComments = comments.map(comment => {
-          const timestamp = comment.querySelector('strong').nextSibling.textContent.match(/\[(.*?)\]/)[1];
-          return { comment, time: parseTime(timestamp) };
+        const sortedComments = allComments.map(comment => {
+          return { comment, time: parseTime(comment.timestamp) };
         }).sort((a, b) => a.time - b.time);
 
         let targetComment;
@@ -484,7 +763,143 @@
         }
       }
 
-    })();
+      // Export Comments Functionality (Generate Shareable URL)
+      const exportCommentsButton = document.getElementById('export-comments');
+      exportCommentsButton.addEventListener('click', function() {
+        if (!currentVideoId) {
+          alert('No video loaded.');
+          return;
+        }
+
+        const authorNameInput = document.getElementById('author-name');
+        const authorName = authorNameInput.value.trim() || 'Anonymous';
+
+        if (!commentsData[currentVideoId] || !commentsData[currentVideoId][authorName] || !Array.isArray(commentsData[currentVideoId][authorName]) || commentsData[currentVideoId][authorName].length === 0) {
+          alert(`No comments to share for this video by ${authorName}.`);
+          return;
+        }
+
+        // Prepare data for sharing
+        const dataToShare = {
+          videoId: currentVideoId,
+          author: authorName,
+          comments: commentsData[currentVideoId][authorName]
+        };
+        const dataStr = JSON.stringify(dataToShare);
+        const compressedData = LZString.compressToEncodedURIComponent(dataStr);
+
+        // Check URL length
+        if (compressedData.length > 1800) {
+          alert('Comments data is too large to share via URL. Please reduce the number of comments or use the export/import feature.');
+          return;
+        }
+
+        // Generate shareable URL
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareUrl = `${baseUrl}#${compressedData}`;
+
+        // Copy URL to clipboard and notify user
+        copyToClipboard(shareUrl);
+        alert('Shareable URL has been copied to your clipboard.');
+      });
+
+      function copyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Failed to copy text to clipboard:', err);
+        }
+        document.body.removeChild(textarea);
+      }
+
+      // Import Comments Functionality
+      const importCommentsButton = document.getElementById('import-comments-btn');
+      const importFileInput = document.getElementById('import-file-input');
+
+      importCommentsButton.addEventListener('click', function() {
+        importFileInput.click();
+      });
+
+      importFileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const importedData = JSON.parse(e.target.result);
+              if (importedData.videoId && importedData.comments && importedData.author) {
+                const videoId = importedData.videoId;
+                const authorName = importedData.author;
+
+                // Ensure importedComments is an array
+                if (!Array.isArray(importedData.comments)) {
+                  alert('Invalid comments format in the imported file.');
+                  return;
+                }
+
+                // Add video to loadedVideos if not already present
+                if (!loadedVideos.some(video => video.id === videoId)) {
+                  fetchVideoDetails(videoId).then(videoDetails => {
+                    loadedVideos.push(videoDetails);
+                    localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+                    updateVideoList();
+                    // Replace comments from the same author
+                    replaceComments(importedData);
+                    loadVideoById(videoId);
+                  }).catch(error => {
+                    alert('Failed to load video details. Please check the video ID.');
+                  });
+                } else {
+                  // Replace comments from the same author
+                  replaceComments(importedData);
+                  loadVideoById(videoId);
+                }
+              } else {
+                alert('Invalid comments file.');
+              }
+            } catch (error) {
+              alert('Error parsing the comments file.');
+            }
+          };
+          reader.readAsText(file);
+        }
+        // Reset the file input
+        importFileInput.value = '';
+      });
+
+      function replaceComments(importedData) {
+        const videoId = importedData.videoId;
+        const importedComments = importedData.comments;
+        const authorName = importedData.author;
+
+        // Ensure importedComments is an array
+        if (!Array.isArray(importedComments)) {
+          console.error('Imported comments are not an array:', importedComments);
+          return;
+        }
+
+        if (!commentsData[videoId]) {
+          commentsData[videoId] = {};
+        }
+        // Replace existing comments from the same author
+        commentsData[videoId][authorName] = importedComments;
+
+        localStorage.setItem('commentsData', JSON.stringify(commentsData));
+      }
+
+      // Initialize with the first loaded video if available
+      if (loadedVideos.length > 0 && !currentVideoId) {
+        loadVideoById(loadedVideos[0].id);
+      }
+
+    }); // End of DOMContentLoaded
   </script>
 </body>
 </html>
