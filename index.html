@@ -217,7 +217,7 @@
   </nav>
 
   <!-- Sidebar -->
-  <nav id="sidebar">
+  <nav id="sidebar" class="bg-dark">
     <div class="sidebar-header">
       <h3><i class="bi bi-gear-fill"></i> Settings</h3>
     </div>
@@ -247,7 +247,7 @@
       <li class="ms-2">
         <label>Comment Display Options</label>
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked>
+          <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked="">
           <label class="form-check-label" for="show-all-comments">
             Show All Comments
           </label>
@@ -317,207 +317,27 @@
     </div>
   </div>
 
-  <!-- Add Comment Modal -->
-  <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="comment-form">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="comment-text" class="form-label">Comment</label>
-              <textarea id="comment-text" class="form-control" rows="3" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="comment-category" class="form-label">Category</label>
-              <select id="comment-category" class="form-select">
-                <option value="teamplay">Teamplay</option>
-                <option value="mechanics">Mechanics</option>
-                <option value="portaling">Portaling</option>
-                <option value="movement">Movement</option>
-                <option value="game_sense">Game Sense</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="comment-sentiment" class="form-label">Sentiment</label>
-              <select id="comment-sentiment" class="form-select">
-                <option value="good">Good</option>
-                <option value="warning">Warning</option>
-                <option value="bad">Bad</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="comment-author" class="form-label">Your Name (optional)</label>
-              <input type="text" id="comment-author" class="form-control">
-            </div>
-            <div class="mb-3">
-              <label for="comment-time" class="form-label">Timestamp</label>
-              <input type="text" id="comment-time" class="form-control" readonly>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Save Comment</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Import Comments Modal -->
-  <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title" id="importModalLabel">Import Comments</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="import-form">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="import-text" class="form-label">Paste the shared link or string:</label>
-              <textarea id="import-text" class="form-control" rows="3" placeholder="Paste here..." required></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Import</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load New Video Modal -->
-  <div class="modal fade" id="newVideoModal" tabindex="-1" aria-labelledby="newVideoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title" id="newVideoModalLabel">Load New Video</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="new-video-form">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="new-video-url" class="form-label">YouTube Video URL</label>
-              <input type="text" id="new-video-url" class="form-control" placeholder="Enter YouTube video URL" required>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Load Video</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Help Modal -->
-  <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content bg-light text-dark">
-        <div class="modal-header">
-          <h5 class="modal-title" id="helpModalLabel">Help & Tutorial</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Help Content -->
-          <h4>Welcome to the FPS Gameplay Review Tool!</h4>
-          <p>This application allows coaches to annotate videos and share their feedback with students.</p>
-          <h5>Modes:</h5>
-          <ul>
-            <li><strong>Coach Mode:</strong> Load videos, add comments, and share annotations.</li>
-            <li><strong>Student Mode:</strong> Import annotations shared by a coach and review the feedback.</li>
-          </ul>
-          <h5>Getting Started:</h5>
-          <ol>
-            <li>Select your mode using the toggle switch in the navbar.</li>
-            <li>In <strong>Coach Mode</strong>, load a video and add comments at specific timestamps.</li>
-            <li>In <strong>Student Mode</strong>, import comments using a link or string provided by your coach.</li>
-          </ol>
-          <h5>Controls:</h5>
-          <ul>
-            <li><strong>Add Comment:</strong> Add a new annotation at the current timestamp (Coach Mode only).</li>
-            <li><strong>Previous/Next Comment:</strong> Navigate between comments.</li>
-            <li><strong>Share Comments:</strong> Generate a shareable link with your annotations (Coach Mode only).</li>
-            <li><strong>Export Comments as Subtitles:</strong> Download your comments as a subtitle file to use with your own video files.</li>
-          </ul>
-          <h5>Settings:</h5>
-          <ul>
-            <li><strong>Sound Notifications:</strong> Enable or disable audio cues when comments appear.</li>
-            <li><strong>Comment Display:</strong> Choose to show all comments or only those up to the current time.</li>
-          </ul>
-          <p>If you have any questions or need assistance, feel free to reach out!</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Saved Videos Modal -->
-  <div class="modal fade" id="savedVideosModal" tabindex="-1" aria-labelledby="savedVideosModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content bg-light text-dark">
-        <div class="modal-header">
-          <h5 class="modal-title" id="savedVideosModalLabel">Saved Reviews</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="saved-videos-list" class="list-group">
-            <!-- Saved videos will be dynamically inserted here -->
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Container -->
-  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Bootstrap JS Bundle (includes Popper.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <!-- LZString Compression Library -->
-  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
-
-  <!-- Combined JavaScript Code -->
+  <!-- JavaScript Code -->
   <script>
     (function() {
       'use strict';
 
       // Variables
-      let player;
-      let comments = [];
-      let videoId = '';
-      let currentCommentIndex = -1;
-      let enableAudioNotifications = false;
-      let audioVolume = 0.5;
-      let mode = 'Coach'; // Default mode is 'Coach'
-      let audioContext;
-      let userInteracted = false;
-      let videoTitle = '';
-      let videoThumbnailUrl = '';
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const sidebarCollapse = document.getElementById('sidebarCollapse');
 
-      // Initialize application
+      // Initialize UI components and event listeners
       document.addEventListener('DOMContentLoaded', () => {
-        // Show help modal on first visit
-        if (!localStorage.getItem('visited')) {
-          const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
-          helpModal.show();
-          localStorage.setItem('visited', 'true');
-        }
+        // Sidebar Toggle
+        sidebarCollapse.addEventListener('click', () => {
+          toggleSidebar();
+        });
 
-        // Initialize UI
-        initUI();
+        // Close sidebar when overlay is clicked
+        overlay.addEventListener('click', () => {
+          toggleSidebar();
+        });
 
         // Initialize tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -526,17 +346,10 @@
         });
       });
 
-      // Initialize UI components and event listeners
-      function initUI() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const sidebarCollapse = document.getElementById('sidebarCollapse');
-
-        // Sidebar Toggle
-        sidebarCollapse.addEventListener('click', () => {
-          sidebar.classList.toggle('active');
-          overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
-        });
-
-        // Close sidebar when overlay is clicked
-        overlay.addEventListener
+      function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+      }
+    })();
+  </script>
+</body>
