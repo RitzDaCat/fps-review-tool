@@ -6,7 +6,9 @@
   <!-- Meta Tags for Responsive Design -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <!-- Custom Styles -->
   <style>
     /* General Styles */
@@ -107,9 +109,8 @@
       width: 250px;
       height: 100%;
       background-color: #343a40;
-      overflow-x: hidden;
+      overflow-y: auto;
       transition: 0.3s;
-      padding-top: 60px;
       z-index: 1000;
     }
 
@@ -118,40 +119,32 @@
     }
 
     #sidebar .sidebar-header {
-      padding: 10px 15px;
+      padding: 20px;
       background-color: #343a40;
       color: #fff;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
     }
 
     #sidebar ul.components {
-      padding: 20px 0;
+      padding: 0;
       list-style: none;
     }
 
     #sidebar ul li {
-      padding: 10px 15px;
+      padding: 15px;
       font-size: 1.1em;
       display: block;
       color: #d1d1d1;
     }
 
+    #sidebar ul li a {
+      color: #d1d1d1;
+      text-decoration: none;
+      display: block;
+    }
+
     #sidebar ul li:hover {
       background: #575d63;
       color: #ffffff;
-      cursor: pointer;
-    }
-
-    /* Toggle Button */
-    #sidebarCollapse {
-      background: #343a40;
-      border: none;
-      color: #fff;
-      padding: 10px;
-      font-size: 1.2em;
       cursor: pointer;
     }
 
@@ -198,52 +191,57 @@
 </head>
 <body>
   <!-- Sidebar -->
-  <nav id="sidebar" aria-label="Sidebar with settings and options">
+  <nav id="sidebar">
     <div class="sidebar-header">
-      <h3>Settings</h3>
+      <h3><i class="bi bi-gear-fill"></i> Settings</h3>
     </div>
     <ul class="components">
       <li>
         <a href="#" id="mode-selector">
-          <i class="fas fa-user"></i>
+          <i class="bi bi-person-fill"></i>
           Mode: <span id="current-mode">Coach</span>
         </a>
       </li>
       <li>
         <a href="#" id="new-video-btn">
-          <i class="fas fa-video"></i>
+          <i class="bi bi-film"></i>
           Load New Video
         </a>
       </li>
       <li id="import-comments-li">
         <a href="#" id="import-comments-btn">
-          <i class="fas fa-file-import"></i>
+          <i class="bi bi-cloud-arrow-down-fill"></i>
           Import Comments
         </a>
       </li>
       <li>
-        <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="audio-notifications">
-          <label class="custom-control-label" for="audio-notifications">Enable Sound Notifications</label>
+        <div class="form-check form-switch ms-2">
+          <input class="form-check-input" type="checkbox" id="audio-notifications">
+          <label class="form-check-label" for="audio-notifications">Enable Sound Notifications</label>
         </div>
       </li>
-      <li>
+      <li class="ms-2">
         <label for="audio-volume">Notification Volume</label>
-        <input type="range" id="audio-volume" class="custom-range" min="0" max="1" step="0.1" value="0.5">
+        <input type="range" id="audio-volume" class="form-range" min="0" max="1" step="0.1" value="0.5">
       </li>
-      <li>
-        <div class="custom-control custom-radio">
-          <input type="radio" id="show-all-comments" name="comment-display" class="custom-control-input" checked>
-          <label class="custom-control-label" for="show-all-comments">Show All Comments</label>
+      <li class="ms-2">
+        <label>Comment Display Options</label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked>
+          <label class="form-check-label" for="show-all-comments">
+            Show All Comments
+          </label>
         </div>
-        <div class="custom-control custom-radio">
-          <input type="radio" id="show-up-to-current-time" name="comment-display" class="custom-control-input">
-          <label class="custom-control-label" for="show-up-to-current-time">Show Comments Up to Current Time</label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="comment-display" id="show-up-to-current-time">
+          <label class="form-check-label" for="show-up-to-current-time">
+            Show Comments Up to Current Time
+          </label>
         </div>
       </li>
       <li>
         <a href="#" id="help-btn">
-          <i class="fas fa-question-circle"></i>
+          <i class="bi bi-question-circle-fill"></i>
           Help
         </a>
       </li>
@@ -256,10 +254,12 @@
   <!-- Page Content -->
   <div id="content">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <button type="button" id="sidebarCollapse" class="btn btn-dark" aria-label="Toggle sidebar">
-        <i class="fas fa-bars"></i>
-      </button>
-      <a class="navbar-brand ml-3" href="#">FPS Gameplay Review Tool</a>
+      <div class="container-fluid">
+        <button type="button" id="sidebarCollapse" class="btn btn-dark me-2" aria-label="Toggle sidebar">
+          <i class="bi bi-list"></i>
+        </button>
+        <a class="navbar-brand" href="#">FPS Gameplay Review Tool</a>
+      </div>
     </nav>
 
     <div class="container-fluid">
@@ -277,17 +277,17 @@
           </div>
           <!-- Controls -->
           <div class="mb-3 text-center">
-            <button id="add-comment" class="btn btn-primary" aria-label="Add Comment">
-              <i class="fas fa-comment-medical"></i> Add Comment
+            <button id="add-comment" class="btn btn-primary me-2" aria-label="Add Comment">
+              <i class="bi bi-plus-circle"></i> Add Comment
             </button>
-            <button id="prev-comment" class="btn btn-secondary" aria-label="Previous Comment">
-              <i class="fas fa-step-backward"></i> Previous Comment
+            <button id="prev-comment" class="btn btn-secondary me-2" aria-label="Previous Comment">
+              <i class="bi bi-skip-backward-fill"></i> Previous Comment
             </button>
-            <button id="next-comment" class="btn btn-secondary" aria-label="Next Comment">
-              <i class="fas fa-step-forward"></i> Next Comment
+            <button id="next-comment" class="btn btn-secondary me-2" aria-label="Next Comment">
+              <i class="bi bi-skip-forward-fill"></i> Next Comment
             </button>
             <button id="export-comments" class="btn btn-info" aria-label="Share Comments">
-              <i class="fas fa-share-alt"></i> Share Comments
+              <i class="bi bi-share-fill"></i> Share Comments
             </button>
           </div>
         </div>
@@ -307,19 +307,17 @@
       <div class="modal-content bg-dark text-light">
         <div class="modal-header">
           <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
-          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="comment-form">
           <div class="modal-body">
-            <div class="form-group">
-              <label for="comment-text">Comment</label>
+            <div class="mb-3">
+              <label for="comment-text" class="form-label">Comment</label>
               <textarea id="comment-text" class="form-control" rows="3" required></textarea>
             </div>
-            <div class="form-group">
-              <label for="comment-category">Category</label>
-              <select id="comment-category" class="form-control">
+            <div class="mb-3">
+              <label for="comment-category" class="form-label">Category</label>
+              <select id="comment-category" class="form-select">
                 <option value="teamplay">Teamplay</option>
                 <option value="mechanics">Mechanics</option>
                 <option value="portaling">Portaling</option>
@@ -327,26 +325,26 @@
                 <option value="game_sense">Game Sense</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="comment-sentiment">Sentiment</label>
-              <select id="comment-sentiment" class="form-control">
+            <div class="mb-3">
+              <label for="comment-sentiment" class="form-label">Sentiment</label>
+              <select id="comment-sentiment" class="form-select">
                 <option value="good">Good</option>
                 <option value="warning">Warning</option>
                 <option value="bad">Bad</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="comment-author">Your Name (optional)</label>
+            <div class="mb-3">
+              <label for="comment-author" class="form-label">Your Name (optional)</label>
               <input type="text" id="comment-author" class="form-control">
             </div>
-            <div class="form-group">
-              <label for="comment-time">Timestamp</label>
+            <div class="mb-3">
+              <label for="comment-time" class="form-label">Timestamp</label>
               <input type="text" id="comment-time" class="form-control" readonly>
             </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Save Comment</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
@@ -359,20 +357,18 @@
       <div class="modal-content bg-dark text-light">
         <div class="modal-header">
           <h5 class="modal-title" id="importModalLabel">Import Comments</h5>
-          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="import-form">
           <div class="modal-body">
-            <div class="form-group">
-              <label for="import-text">Paste the shared link or string:</label>
+            <div class="mb-3">
+              <label for="import-text" class="form-label">Paste the shared link or string:</label>
               <textarea id="import-text" class="form-control" rows="3" placeholder="Paste here..." required></textarea>
             </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Import</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
@@ -385,20 +381,18 @@
       <div class="modal-content bg-dark text-light">
         <div class="modal-header">
           <h5 class="modal-title" id="newVideoModalLabel">Load New Video</h5>
-          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="new-video-form">
           <div class="modal-body">
-            <div class="form-group">
-              <label for="new-video-url">YouTube Video URL</label>
+            <div class="mb-3">
+              <label for="new-video-url" class="form-label">YouTube Video URL</label>
               <input type="text" id="new-video-url" class="form-control" placeholder="Enter YouTube video URL" required>
             </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Load Video</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
@@ -411,9 +405,7 @@
       <div class="modal-content bg-light text-dark">
         <div class="modal-header">
           <h5 class="modal-title" id="helpModalLabel">Help & Tutorial</h5>
-          <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <!-- Help Content -->
@@ -444,7 +436,7 @@
           <p>If you have any questions or need assistance, feel free to reach out!</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Close</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
         </div>
       </div>
     </div>
@@ -453,17 +445,14 @@
   <!-- Toast Container -->
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Font Awesome for Icons -->
-  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-  <!-- Bootstrap JS and Dependencies -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Bootstrap JS Bundle (includes Popper.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
   <!-- LZString Compression Library -->
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
-  <!-- Custom Script -->
+
+  <!-- Combined JavaScript Code -->
   <script>
     (function() {
       'use strict';
@@ -481,30 +470,38 @@
 
       // Initialize application
       document.addEventListener('DOMContentLoaded', () => {
-        // Show welcome modal on load
-        $('#helpModal').modal('show');
+        // Show help modal on load
+        const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+        helpModal.show();
 
-        // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip();
-
-        // Initialize event listeners
-        initEventListeners();
+        // Initialize UI
+        initUI();
       });
 
-      // Initialize event listeners
-      function initEventListeners() {
+      // Initialize UI components and event listeners
+      function initUI() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
         // Sidebar Toggle
-        $('#sidebarCollapse').on('click', function () {
-          $('#sidebar').toggleClass('active');
-          $('#overlay').fadeToggle();
+        sidebarCollapse.addEventListener('click', () => {
+          sidebar.classList.toggle('active');
+          overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
         });
 
         // Close sidebar when overlay is clicked
-        $('#overlay').on('click', function () {
-          $('#sidebar').removeClass('active');
-          $(this).fadeOut();
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('active');
+          overlay.style.display = 'none';
         });
 
+        // Initialize event listeners for buttons, forms, etc.
+        initEventListeners();
+      }
+
+      // Initialize event listeners
+      function initEventListeners() {
         // Mode Selector
         document.getElementById('mode-selector').addEventListener('click', () => {
           confirmModeSwitch();
@@ -518,7 +515,8 @@
                 return;
               }
             }
-            $('#newVideoModal').modal('show');
+            const newVideoModal = new bootstrap.Modal(document.getElementById('newVideoModal'));
+            newVideoModal.show();
           }
           closeSidebar();
         });
@@ -534,7 +532,8 @@
             currentCommentIndex = -1;
             saveComments();
             loadVideo(videoId);
-            $('#newVideoModal').modal('hide');
+            const newVideoModal = bootstrap.Modal.getInstance(document.getElementById('newVideoModal'));
+            newVideoModal.hide();
             document.getElementById('new-video-form').reset();
             showToast('Video loaded successfully.', 'success');
           } else {
@@ -545,7 +544,8 @@
         // Import Comments Button
         document.getElementById('import-comments-btn').addEventListener('click', () => {
           if (mode === 'Student') {
-            $('#importModal').modal('show');
+            const importModal = new bootstrap.Modal(document.getElementById('importModal'));
+            importModal.show();
           }
           closeSidebar();
         });
@@ -564,7 +564,8 @@
           if (mode === 'Coach') {
             const currentTime = player.getCurrentTime();
             document.getElementById('comment-time').value = formatTime(currentTime);
-            $('#commentModal').modal('show');
+            const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+            commentModal.show();
           }
         });
 
@@ -605,7 +606,8 @@
 
         // Help Button
         document.getElementById('help-btn').addEventListener('click', () => {
-          $('#helpModal').modal('show');
+          const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+          helpModal.show();
           closeSidebar();
         });
 
@@ -622,8 +624,10 @@
 
       // Close Sidebar
       function closeSidebar() {
-        $('#sidebar').removeClass('active');
-        $('#overlay').fadeOut();
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.remove('active');
+        overlay.style.display = 'none';
       }
 
       // Initialize AudioContext
@@ -639,7 +643,7 @@
 
       // YouTube IFrame API Ready
       window.onYouTubeIframeAPIReady = function() {
-        // No action needed here; video will be loaded when user selects to load a video or import comments
+        // Video will be loaded when user selects to load a video or imports comments
       };
 
       // Load Video Function
@@ -753,18 +757,13 @@
           item.href = '#';
           item.className = 'list-group-item list-group-item-action comment-item';
           item.textContent = formatTime(comment.time) + ' - ' + comment.text;
-          item.addEventListener('click', () => {
+          item.addEventListener('click', (e) => {
+            e.preventDefault();
             player.seekTo(comment.time);
           });
 
           // Apply sentiment shading
           item.classList.add('sentiment-' + comment.sentiment);
-
-          // Add category icon
-          const categoryIcon = document.createElement('i');
-          categoryIcon.className = 'fas fa-tag mr-2';
-          categoryIcon.setAttribute('aria-label', 'Category');
-          item.prepend(categoryIcon);
 
           commentFeed.appendChild(item);
         });
@@ -791,7 +790,8 @@
           saveComments();
           createTimelineMarkers();
           updateCommentFeed();
-          $('#commentModal').modal('hide');
+          const commentModal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
+          commentModal.hide();
           document.getElementById('comment-form').reset();
           showToast('Comment added successfully.', 'success');
         }
@@ -842,7 +842,8 @@
             videoId = decompressedData.videoId;
             comments = decompressedData.comments;
             loadVideo(videoId);
-            $('#importModal').modal('hide');
+            const importModal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+            importModal.hide();
             document.getElementById('import-form').reset();
             showToast('Comments imported successfully.', 'success');
           } catch (error) {
@@ -965,29 +966,27 @@
       // Show Toast Notification
       function showToast(message, type) {
         const toastContainer = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white bg-${type} border-0`;
-        toast.role = 'alert';
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
+        const toastEl = document.createElement('div');
+        toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+        toastEl.role = 'alert';
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
 
-        toast.innerHTML = `
+        toastEl.innerHTML = `
           <div class="d-flex">
             <div class="toast-body">
               ${message}
             </div>
-            <button type="button" class="ml-auto mb-1 close text-white" data-dismiss="toast" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
           </div>
         `;
 
-        toastContainer.appendChild(toast);
-        $(toast).toast({ delay: 3000 });
-        $(toast).toast('show');
+        toastContainer.appendChild(toastEl);
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
 
-        $(toast).on('hidden.bs.toast', () => {
-          toast.remove();
+        toastEl.addEventListener('hidden.bs.toast', () => {
+          toastEl.remove();
         });
       }
 
