@@ -84,6 +84,17 @@
       overflow-y: auto;
     }
 
+    .comment-item {
+      position: relative;
+    }
+
+    .comment-emoji {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+    }
+
     .comment-item.active {
       background-color: #f1c40f;
     }
@@ -188,7 +199,7 @@
         <div class="col-lg-8 col-md-12">
           <!-- Video Container -->
           <div id="video-container" class="card shadow-sm mb-3">
-            <div id="video-player"></div>
+            <iframe id="video-player" width="640" height="390" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             <div id="video-overlay"></div>
           </div>
           <!-- Timeline -->
@@ -253,9 +264,9 @@
               <div class="mb-3">
                 <label for="comment-category" class="form-label">Category</label>
                 <select id="comment-category" class="form-select">
-                  <option value="gameplay">Gameplay</option>
-                  <option value="crosshair">Crosshair Placement</option>
-                  <option value="movement">Movement</option>
+                  <option value="gameplay">Gameplay 🎮</option>
+                  <option value="crosshair">Crosshair Placement 🎯</option>
+                  <option value="movement">Movement 🏃</option>
                 </select>
               </div>
               <div class="mb-3">
@@ -272,41 +283,71 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS and YouTube API -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
-
-  <!-- JavaScript Code -->
+  
+  <!-- Custom JavaScript Code -->
   <script>
-    let player;
-
-    function onYouTubeIframeAPIReady() {
-      // Placeholder: video player will be initialized once the video URL is provided.
-    }
-
     (function() {
       'use strict';
+
+      let playerReady = false;
+      let player;
 
       // Load New Video Button
       const loadVideoButton = document.getElementById('load-video-btn');
       loadVideoButton.addEventListener('click', function() {
-        const videoId = prompt('Enter YouTube Video ID:');
-        if (videoId) {
-          if (player) {
-            player.loadVideoById(videoId);
+        const videoInput = prompt('Enter YouTube Video ID or URL:');
+        if (videoInput) {
+          const videoId = extractVideoId(videoInput);
+          if (videoId) {
+            const iframe = document.getElementById('video-player');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+            initPlayer();
           } else {
+            alert('Invalid YouTube Video ID or URL.');
+          }
+        }
+      });
+
+      function extractVideoId(input) {
+        const regex = /(?:\?v=|\/embed\/|\.be\/|\/v\/|\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+        const match = input.match(regex);
+        return match ? match[1] : input;
+      }
+
+      function initPlayer() {
+        if (typeof YT !== 'undefined' && YT && YT.Player) {
+          player = new YT.Player('video-player', {
+            events: {
+              'onReady': onPlayerReady,
+              'onStateChange': onPlayerStateChange
+            }
+          });
+        } else {
+          // Load the YouTube API script dynamically
+          var tag = document.createElement('script');
+          tag.src = "https://www.youtube.com/iframe_api";
+          var firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+          window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('video-player', {
-              height: '390',
-              width: '640',
-              videoId: videoId,
               events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
               }
             });
-          }
+          };
         }
-      });
+      }
+
+      function onPlayerReady(event) {
+        playerReady = true;
+      }
+
+      function onPlayerStateChange(event) {
+        // Handle player state changes if needed
+      }
 
       // Save Comment Button in Modal
       const saveCommentButton = document.getElementById('save-comment-btn');
@@ -317,24 +358,73 @@
         const commentCategory = document.getElementById('comment-category').value;
         const commentTimestamp = document.getElementById('comment-timestamp').value;
         const commentFeed = document.getElementById('comment-feed');
+
+        // Create comment card
         const commentItem = document.createElement('div');
-        commentItem.classList.add('list-group-item', `sentiment-${commentSentiment}`);
-        commentItem.innerHTML = `<strong>${commentCategory}</strong> [${commentTimestamp}]<br>${commentText}`;
+        commentItem.classList.add('list-group-item', 'comment-item', `sentiment-${commentSentiment}`);
+
+        // Get emoji based on category
+        const categoryEmojis = {
+          'gameplay': '🎮',
+          'crosshair': '🎯',
+          'movement': '🏃'
+        };
+        const emoji = categoryEmojis[commentCategory] || '';
+
+        commentItem.innerHTML = `
+          <div class="comment-emoji">${emoji}</div>
+          <div style="margin-left: 40px;">
+            <strong>${commentCategory.charAt(0).toUpperCase() + commentCategory.slice(1)}</strong> [${commentTimestamp}]<br>${commentText}
+          </div>
+        `;
+
+        commentItem.addEventListener('click', function() {
+          if (player && playerReady) {
+            const timeInSeconds = parseTime(commentTimestamp);
+            player.seekTo(timeInSeconds, true);
+          }
+        });
+
         commentFeed.appendChild(commentItem);
+
+        // Add marker to timeline
+        addTimelineMarker(commentTimestamp);
+
         const commentModal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
         commentModal.hide();
         document.getElementById('comment-form').reset();
       });
 
+      function addTimelineMarker(timestamp) {
+        const timeInSeconds = parseTime(timestamp);
+        const videoDuration = player.getDuration();
+        const timeline = document.getElementById('timeline');
+        const markerPosition = (timeInSeconds / videoDuration) * 100;
+
+        const marker = document.createElement('div');
+        marker.classList.add('timeline-marker');
+        marker.style.left = `${markerPosition}%`;
+
+        marker.addEventListener('click', function() {
+          if (player && playerReady) {
+            player.seekTo(timeInSeconds, true);
+          }
+        });
+
+        timeline.appendChild(marker);
+      }
+
       // Update Timestamp when Modal Opens
       const commentModalElement = document.getElementById('commentModal');
       commentModalElement.addEventListener('show.bs.modal', function () {
         const commentTimestampInput = document.getElementById('comment-timestamp');
-        if (player && player.getCurrentTime) {
+        if (player && typeof player.getCurrentTime === 'function') {
           const currentTime = player.getCurrentTime();
           commentTimestampInput.value = formatTime(currentTime);
         } else {
-          commentTimestampInput.value = '0:00';
+          alert('Please load a video before adding comments.');
+          const commentModal = bootstrap.Modal.getInstance(commentModalElement);
+          commentModal.hide();
         }
       });
 
@@ -344,12 +434,54 @@
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
       }
 
-      function onPlayerReady(event) {
-        // Player is ready
+      function parseTime(timeString) {
+        const parts = timeString.split(':');
+        let seconds = 0;
+        for (let i = 0; i < parts.length; i++) {
+          seconds = seconds * 60 + parseInt(parts[i], 10);
+        }
+        return seconds;
       }
 
-      function onPlayerStateChange(event) {
-        // Handle player state changes
+      // Previous and Next Comment Buttons
+      const prevCommentButton = document.getElementById('prev-comment');
+      const nextCommentButton = document.getElementById('next-comment');
+
+      prevCommentButton.addEventListener('click', function() {
+        navigateComments(-1);
+      });
+
+      nextCommentButton.addEventListener('click', function() {
+        navigateComments(1);
+      });
+
+      function navigateComments(direction) {
+        const comments = Array.from(document.getElementsByClassName('comment-item'));
+        if (comments.length === 0 || !playerReady) return;
+
+        const currentTime = player.getCurrentTime();
+        const sortedComments = comments.map(comment => {
+          const timestamp = comment.querySelector('strong').nextSibling.textContent.match(/\[(.*?)\]/)[1];
+          return { comment, time: parseTime(timestamp) };
+        }).sort((a, b) => a.time - b.time);
+
+        let targetComment;
+        if (direction === 1) {
+          // Next comment
+          targetComment = sortedComments.find(c => c.time > currentTime);
+        } else {
+          // Previous comment
+          for (let i = sortedComments.length - 1; i >= 0; i--) {
+            if (sortedComments[i].time < currentTime) {
+              targetComment = sortedComments[i];
+              break;
+            }
+          }
+        }
+
+        if (targetComment) {
+          player.seekTo(targetComment.time, true);
+        }
       }
 
     })();
