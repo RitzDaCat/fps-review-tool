@@ -101,71 +101,6 @@
       background-color: #f8e0e0; /* Light red */
     }
 
-    /* Sidebar Styles */
-    #sidebar {
-      position: fixed;
-      top: 0;
-      left: -250px;
-      width: 250px;
-      height: 100%;
-      background-color: #343a40;
-      overflow-y: auto;
-      transition: 0.3s;
-      z-index: 1000;
-    }
-
-    #sidebar.active {
-      left: 0;
-    }
-
-    #sidebar .sidebar-header {
-      padding: 20px;
-      background-color: #343a40;
-      color: #fff;
-    }
-
-    #sidebar ul.components {
-      padding: 0;
-      list-style: none;
-    }
-
-    #sidebar ul li {
-      padding: 15px;
-      font-size: 1.1em;
-      display: block;
-      color: #d1d1d1;
-    }
-
-    #sidebar ul li a {
-      color: #d1d1d1;
-      text-decoration: none;
-      display: block;
-    }
-
-    #sidebar ul li:hover {
-      background: #575d63;
-      color: #ffffff;
-      cursor: pointer;
-    }
-
-    /* Overlay for Main Content when Sidebar is Open */
-    #overlay {
-      position: fixed;
-      display: none;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background-color: rgba(0,0,0,0.7);
-      z-index: 999;
-    }
-
-    /* Disable Add Comment Button in Student Mode */
-    .disabled {
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
     /* Toast Notification Styles */
     #toast-container {
       position: fixed;
@@ -178,16 +113,6 @@
       min-width: 200px;
     }
 
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      #sidebar {
-        left: -250px;
-      }
-      #sidebar.active {
-        left: 0;
-      }
-    }
-
     /* Video Thumbnail */
     .video-thumbnail {
       width: 120px;
@@ -197,76 +122,79 @@
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <!-- Toolbar -->
+  <nav class="navbar navbar-dark bg-dark px-3">
     <div class="container-fluid">
       <button type="button" id="sidebarCollapse" class="btn btn-dark me-2" aria-label="Toggle sidebar">
         <i class="bi bi-list"></i>
       </button>
-      <a class="navbar-brand" href="#">FPS Gameplay Review Tool</a>
-      <div class="ms-auto d-flex align-items-center">
-        <button id="saved-videos-btn" class="btn btn-outline-light me-3" aria-label="Saved Reviews" data-bs-toggle="tooltip" title="Saved Reviews">
-          <i class="bi bi-folder-fill"></i>
+      <h5 class="navbar-brand mb-0">FPS Gameplay Review Tool</h5>
+      <div class="dropdown">
+        <button class="btn btn-outline-light dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-gear-fill"></i> Settings
         </button>
-        <div class="form-check form-switch text-white">
-          <label class="form-check-label me-2" for="mode-toggle"><i class="bi bi-person-fill"></i> Mode: <span id="current-mode">Coach</span></label>
-          <input class="form-check-input" type="checkbox" id="mode-toggle" aria-label="Toggle mode">
-        </div>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+          <li><a class="dropdown-item" href="#" id="saved-videos-btn">Saved Reviews</a></li>
+          <li><a class="dropdown-item" href="#" id="import-comments-btn">Import Comments</a></li>
+        </ul>
       </div>
     </div>
   </nav>
 
   <!-- Sidebar -->
-  <nav id="sidebar" class="bg-dark">
-    <div class="sidebar-header">
-      <h3><i class="bi bi-gear-fill"></i> Settings</h3>
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="sidebarLabel"><i class="bi bi-gear-fill"></i> Settings</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <ul class="components">
-      <li>
-        <a href="#" id="new-video-btn">
-          <i class="bi bi-film"></i>
-          Load New Video
-        </a>
-      </li>
-      <li id="import-comments-li">
-        <a href="#" id="import-comments-btn">
-          <i class="bi bi-cloud-arrow-down-fill"></i>
-          Import Comments
-        </a>
-      </li>
-      <li>
-        <div class="form-check form-switch ms-2">
-          <input class="form-check-input" type="checkbox" id="audio-notifications">
-          <label class="form-check-label" for="audio-notifications">Enable Sound Notifications</label>
-        </div>
-      </li>
-      <li class="ms-2">
-        <label for="audio-volume">Notification Volume</label>
-        <input type="range" id="audio-volume" class="form-range" min="0" max="1" step="0.1" value="0.5">
-      </li>
-      <li class="ms-2">
-        <label>Comment Display Options</label>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked="">
-          <label class="form-check-label" for="show-all-comments">
-            Show All Comments
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="comment-display" id="show-up-to-current-time">
-          <label class="form-check-label" for="show-up-to-current-time">
-            Show Comments Up to Current Time
-          </label>
-        </div>
-      </li>
-      <li>
-        <a href="#" id="help-btn">
-          <i class="bi bi-question-circle-fill"></i>
-          Help
-        </a>
-      </li>
-    </ul>
-  </nav>
+    <div class="offcanvas-body">
+      <ul class="components">
+        <li>
+          <a href="#" id="new-video-btn">
+            <i class="bi bi-film"></i>
+            Load New Video
+          </a>
+        </li>
+        <li id="import-comments-li">
+          <a href="#" id="import-comments-btn">
+            <i class="bi bi-cloud-arrow-down-fill"></i>
+            Import Comments
+          </a>
+        </li>
+        <li>
+          <div class="form-check form-switch ms-2">
+            <input class="form-check-input" type="checkbox" id="audio-notifications">
+            <label class="form-check-label" for="audio-notifications">Enable Sound Notifications</label>
+          </div>
+        </li>
+        <li class="ms-2">
+          <label for="audio-volume">Notification Volume</label>
+          <input type="range" id="audio-volume" class="form-range" min="0" max="1" step="0.1" value="0.5">
+        </li>
+        <li class="ms-2">
+          <label>Comment Display Options</label>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked="">
+            <label class="form-check-label" for="show-all-comments">
+              Show All Comments
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="comment-display" id="show-up-to-current-time">
+            <label class="form-check-label" for="show-up-to-current-time">
+              Show Comments Up to Current Time
+            </label>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="help-btn">
+            <i class="bi bi-question-circle-fill"></i>
+            Help
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
 
   <!-- Overlay -->
   <div id="overlay"></div>
@@ -276,9 +204,9 @@
     <div class="container-fluid">
       <div class="row mt-4">
         <!-- Video and Timeline Column -->
-        <div class="col-md-8">
+        <div class="col-lg-8 col-md-12">
           <!-- Video Container -->
-          <div id="video-container" class="mb-3">
+          <div id="video-container" class="card shadow-sm mb-3">
             <div id="video-player"></div>
             <div id="video-overlay"></div>
           </div>
@@ -308,10 +236,23 @@
           </div>
         </div>
         <!-- Comments Column -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-12">
           <!-- Comment Feed -->
           <h4>Comments</h4>
-          <div id="comment-feed" class="list-group" aria-label="List of comments"></div>
+          <div id="comment-feed" class="list-group" aria-label="List of comments">
+            <div class="card mb-2">
+              <div class="card-body sentiment-good">
+                <h6 class="card-title">Comment 1</h6>
+                <p class="card-text">This is a comment related to teamplay.</p>
+              </div>
+            </div>
+            <div class="card mb-2">
+              <div class="card-body sentiment-warning">
+                <h6 class="card-title">Comment 2</h6>
+                <p class="card-text">This is a warning comment about mechanics.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -324,19 +265,14 @@
 
       // Variables
       const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
       const sidebarCollapse = document.getElementById('sidebarCollapse');
 
       // Initialize UI components and event listeners
       document.addEventListener('DOMContentLoaded', () => {
         // Sidebar Toggle
         sidebarCollapse.addEventListener('click', () => {
-          toggleSidebar();
-        });
-
-        // Close sidebar when overlay is clicked
-        overlay.addEventListener('click', () => {
-          toggleSidebar();
+          const bsOffcanvas = new bootstrap.Offcanvas(sidebar);
+          bsOffcanvas.toggle();
         });
 
         // Initialize tooltips
@@ -345,11 +281,6 @@
           return new bootstrap.Tooltip(tooltipTriggerEl);
         });
       });
-
-      function toggleSidebar() {
-        sidebar.classList.toggle('active');
-        overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
-      }
     })();
   </script>
 </body>
