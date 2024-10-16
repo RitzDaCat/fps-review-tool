@@ -165,6 +165,12 @@
       z-index: 999;
     }
 
+    /* Disable Add Comment Button in Student Mode */
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
       #sidebar {
@@ -184,7 +190,22 @@
     </div>
     <ul class="components">
       <li>
-        <button id="new-video-btn" class="btn btn-primary btn-block">Load New Video</button>
+        <a href="#" id="mode-selector">
+          <i class="fas fa-user"></i>
+          Mode: <span id="current-mode">Coach</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" id="new-video-btn">
+          <i class="fas fa-video"></i>
+          Load New Video
+        </a>
+      </li>
+      <li id="import-comments-li">
+        <a href="#" id="import-comments-btn">
+          <i class="fas fa-file-import"></i>
+          Import Comments
+        </a>
       </li>
       <li>
         <div class="custom-control custom-switch">
@@ -232,10 +253,18 @@
           </div>
           <!-- Controls -->
           <div class="mb-3 text-center">
-            <button id="add-comment" class="btn btn-primary">Add Comment</button>
-            <button id="prev-comment" class="btn btn-secondary">Previous Comment</button>
-            <button id="next-comment" class="btn btn-secondary">Next Comment</button>
-            <button id="export-comments" class="btn btn-info">Share Comments</button>
+            <button id="add-comment" class="btn btn-primary">
+              <i class="fas fa-comment-medical"></i> Add Comment
+            </button>
+            <button id="prev-comment" class="btn btn-secondary">
+              <i class="fas fa-step-backward"></i> Previous Comment
+            </button>
+            <button id="next-comment" class="btn btn-secondary">
+              <i class="fas fa-step-forward"></i> Next Comment
+            </button>
+            <button id="export-comments" class="btn btn-info">
+              <i class="fas fa-share-alt"></i> Share Comments
+            </button>
           </div>
         </div>
         <!-- Comments Column -->
@@ -300,6 +329,32 @@
     </div>
   </div>
 
+  <!-- Import Comments Modal -->
+  <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="importModalLabel">Import Comments</h5>
+          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="import-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="import-text">Paste the shared link or string:</label>
+              <textarea id="import-text" class="form-control" rows="3" placeholder="Paste here..." required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Import</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Load New Video Modal -->
   <div class="modal fade" id="newVideoModal" tabindex="-1" aria-labelledby="newVideoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -326,9 +381,6 @@
     </div>
   </div>
 
-  <!-- Overlay for Main Content -->
-  <div id="overlay"></div>
-
   <!-- Font Awesome for Icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   <!-- Bootstrap JS and Dependencies -->
@@ -346,13 +398,15 @@
     let videoId = '';
     let currentCommentIndex = -1;
     let enableAudioNotifications = false;
+    let mode = 'Coach'; // Default mode is 'Coach'
 
     // Create an AudioContext for sound generation
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     // Load YouTube IFrame API
     function onYouTubeIframeAPIReady() {
-      checkForDataInUrl();
+      // No longer checking for data in URL at page load
+      // User will load video via the sidebar
     }
 
     // Load the video and initialize the player
@@ -479,9 +533,11 @@
 
     // Add comment
     document.getElementById('add-comment').addEventListener('click', () => {
-      const currentTime = player.getCurrentTime();
-      document.getElementById('comment-time').value = formatTime(currentTime);
-      $('#commentModal').modal('show');
+      if (mode === 'Coach') {
+        const currentTime = player.getCurrentTime();
+        document.getElementById('comment-time').value = formatTime(currentTime);
+        $('#commentModal').modal('show');
+      }
     });
 
     // Handle comment form submission
@@ -543,33 +599,49 @@
 
     // Export comments and generate shareable link
     document.getElementById('export-comments').addEventListener('click', () => {
-      const data = {
-        videoId: videoId,
-        comments: comments
-      };
-      const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(data));
-      const shareableUrl = `${window.location.origin}${window.location.pathname}?data=${compressedData}`;
-      prompt('Copy and share this URL:', shareableUrl);
+      if (mode === 'Coach') {
+        const data = {
+          videoId: videoId,
+          comments: comments
+        };
+        const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+        const shareableUrl = `${window.location.origin}${window.location.pathname}?data=${compressedData}`;
+        prompt('Copy and share this URL:', shareableUrl);
+      }
     });
 
-    // Check for data in URL
-    function checkForDataInUrl() {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('data')) {
-        const compressedData = urlParams.get('data');
-        try {
-          const decompressedData = JSON.parse(LZString.decompressFromEncodedURIComponent(compressedData));
-          videoId = decompressedData.videoId;
-          comments = decompressedData.comments;
-          loadVideo(videoId);
-        } catch (error) {
-          alert('Failed to load data from URL.');
-        }
-      } else {
-        // Open the new video modal to enter a video URL
-        $('#newVideoModal').modal('show');
+    // Import comments
+    document.getElementById('import-comments-btn').addEventListener('click', () => {
+      if (mode === 'Student') {
+        $('#importModal').modal('show');
+        $('#sidebar').removeClass('active');
+        $('#overlay').fadeOut();
       }
-    }
+    });
+
+    // Handle import form submission
+    document.getElementById('import-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inputData = document.getElementById('import-text').value.trim();
+      if (inputData) {
+        const urlParams = new URLSearchParams(inputData.split('?')[1]);
+        if (urlParams.has('data')) {
+          const compressedData = urlParams.get('data');
+          try {
+            const decompressedData = JSON.parse(LZString.decompressFromEncodedURIComponent(compressedData));
+            videoId = decompressedData.videoId;
+            comments = decompressedData.comments;
+            loadVideo(videoId);
+            $('#importModal').modal('hide');
+            document.getElementById('import-form').reset();
+          } catch (error) {
+            alert('Failed to load data from input.');
+          }
+        } else {
+          alert('Invalid input. Please ensure you have pasted the correct link or string.');
+        }
+      }
+    });
 
     // Extract YouTube Video ID from URL
     function extractVideoID(url) {
@@ -665,7 +737,9 @@
 
     // Load New Video Button
     document.getElementById('new-video-btn').addEventListener('click', () => {
-      $('#newVideoModal').modal('show');
+      if (mode === 'Coach') {
+        $('#newVideoModal').modal('show');
+      }
       $('#sidebar').removeClass('active');
       $('#overlay').fadeOut();
     });
@@ -687,6 +761,32 @@
         alert('Invalid YouTube URL.');
       }
     });
+
+    // Mode Selector
+    document.getElementById('mode-selector').addEventListener('click', () => {
+      mode = mode === 'Coach' ? 'Student' : 'Coach';
+      document.getElementById('current-mode').textContent = mode;
+
+      // Update UI based on mode
+      if (mode === 'Coach') {
+        document.getElementById('add-comment').classList.remove('disabled');
+        document.getElementById('export-comments').classList.remove('disabled');
+        document.getElementById('new-video-btn').classList.remove('disabled');
+        document.getElementById('import-comments-li').style.display = 'none';
+      } else {
+        document.getElementById('add-comment').classList.add('disabled');
+        document.getElementById('export-comments').classList.add('disabled');
+        document.getElementById('new-video-btn').classList.add('disabled');
+        document.getElementById('import-comments-li').style.display = 'block';
+      }
+      $('#sidebar').removeClass('active');
+      $('#overlay').fadeOut();
+    });
+
+    // Initialize UI based on default mode
+    if (mode === 'Coach') {
+      document.getElementById('import-comments-li').style.display = 'none';
+    }
   </script>
 </body>
 </html>
