@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <!-- Custom Styles -->
   <style>
+    /* [Your existing CSS styles] */
     /* General Styles */
     body {
       overflow-x: hidden;
@@ -253,8 +254,8 @@
             <button id="export-comments" class="btn btn-info ms-2" aria-label="Share Comments">
               <i class="bi bi-share-fill"></i> Share Comments
             </button>
-            <button id="export-subtitles" class="btn btn-secondary ms-2" aria-label="Export Comments as Subtitles">
-              <i class="bi bi-download"></i> Export Comments as Subtitles
+            <button id="export-comments-file" class="btn btn-secondary ms-2" aria-label="Export Comments to File">
+              <i class="bi bi-cloud-arrow-up-fill"></i> Export Comments to File
             </button>
           </div>
         </div>
@@ -790,7 +791,7 @@
 
         // Check URL length
         if (compressedData.length > 1800) {
-          alert('Comments data is too large to share via URL. Please reduce the number of comments or use the export/import feature.');
+          alert('Comments data is too large to share via URL. Please use the export/import feature.');
           return;
         }
 
@@ -818,6 +819,43 @@
         }
         document.body.removeChild(textarea);
       }
+
+      // Export Comments to File Functionality
+      const exportCommentsFileButton = document.getElementById('export-comments-file');
+      exportCommentsFileButton.addEventListener('click', function() {
+        if (!currentVideoId) {
+          alert('No video loaded.');
+          return;
+        }
+
+        const authorNameInput = document.getElementById('author-name');
+        const authorName = authorNameInput.value.trim() || 'Anonymous';
+
+        if (!commentsData[currentVideoId] || !commentsData[currentVideoId][authorName] || !Array.isArray(commentsData[currentVideoId][authorName]) || commentsData[currentVideoId][authorName].length === 0) {
+          alert(`No comments to export for this video by ${authorName}.`);
+          return;
+        }
+
+        // Prepare data for export
+        const dataToExport = {
+          videoId: currentVideoId,
+          author: authorName,
+          comments: commentsData[currentVideoId][authorName]
+        };
+
+        const dataStr = JSON.stringify(dataToExport, null, 2); // Pretty print with indentation
+
+        // Create a Blob and trigger a download
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `comments_${currentVideoId}_${authorName}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
 
       // Import Comments Functionality
       const importCommentsButton = document.getElementById('import-comments-btn');
