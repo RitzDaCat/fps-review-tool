@@ -78,6 +78,24 @@
     .comment-item.active {
       background-color: #f1c40f;
     }
+
+    /* Sentiment Shading */
+    .sentiment-good {
+      background-color: #e0f8e0; /* Light green */
+    }
+
+    .sentiment-warning {
+      background-color: #fff8e0; /* Light yellow */
+    }
+
+    .sentiment-bad {
+      background-color: #f8e0e0; /* Light red */
+    }
+
+    /* Controls */
+    .custom-control {
+      margin-right: 15px;
+    }
   </style>
 </head>
 <body>
@@ -101,6 +119,21 @@
           <button id="prev-comment" class="btn btn-secondary">Previous Comment</button>
           <button id="next-comment" class="btn btn-secondary">Next Comment</button>
           <button id="export-comments" class="btn btn-info">Share Comments</button>
+        </div>
+        <!-- Additional Controls -->
+        <div class="mb-3 text-center">
+          <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="show-all-comments" name="comment-display" class="custom-control-input" checked>
+            <label class="custom-control-label" for="show-all-comments">Show All Comments</label>
+          </div>
+          <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="show-up-to-current-time" name="comment-display" class="custom-control-input">
+            <label class="custom-control-label" for="show-up-to-current-time">Show Comments Up to Current Time</label>
+          </div>
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="audio-notifications">
+            <label class="custom-control-label" for="audio-notifications">Enable Sound Notifications</label>
+          </div>
         </div>
       </div>
       <!-- Comments Column -->
@@ -131,9 +164,19 @@
             <div class="form-group">
               <label for="comment-category">Category</label>
               <select id="comment-category" class="form-control">
-                <option value="movement">Movement</option>
-                <option value="crosshair">Crosshair Placement</option>
                 <option value="teamplay">Teamplay</option>
+                <option value="mechanics">Mechanics</option>
+                <option value="portaling">Portaling</option>
+                <option value="movement">Movement</option>
+                <option value="game_sense">Game Sense</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="comment-sentiment">Sentiment</label>
+              <select id="comment-sentiment" class="form-control">
+                <option value="good">Good</option>
+                <option value="warning">Warning</option>
+                <option value="bad">Bad</option>
               </select>
             </div>
             <div class="form-group">
@@ -168,6 +211,7 @@
     let comments = [];
     let videoId = '';
     let currentCommentIndex = -1;
+    let enableAudioNotifications = false;
 
     // Load YouTube IFrame API
     function onYouTubeIframeAPIReady() {
@@ -214,6 +258,11 @@
         currentCommentIndex = nextCommentIndex - 1;
         displayCommentOverlay(comments[currentCommentIndex]);
         highlightCommentInFeed(currentCommentIndex);
+
+        // Play sound notification if enabled
+        if (enableAudioNotifications && comments[currentCommentIndex]) {
+          playSoundForCategory(comments[currentCommentIndex].category);
+        }
       }
 
       if (player.getPlayerState() == YT.PlayerState.PLAYING) {
@@ -263,8 +312,15 @@
     function updateCommentFeed() {
       const commentFeed = document.getElementById('comment-feed');
       commentFeed.innerHTML = '';
+      const showUpToCurrentTime = document.getElementById('show-up-to-current-time').checked;
+      const currentTime = player ? player.getCurrentTime() : 0;
 
-      comments.forEach((comment, index) => {
+      let filteredComments = comments;
+      if (showUpToCurrentTime && player) {
+        filteredComments = comments.filter(comment => comment.time <= currentTime);
+      }
+
+      filteredComments.forEach((comment, index) => {
         const item = document.createElement('a');
         item.href = '#';
         item.className = 'list-group-item list-group-item-action comment-item';
@@ -272,6 +328,10 @@
         item.addEventListener('click', () => {
           player.seekTo(comment.time);
         });
+
+        // Apply sentiment shading
+        item.classList.add('sentiment-' + comment.sentiment);
+
         commentFeed.appendChild(item);
       });
     }
@@ -288,6 +348,7 @@
       e.preventDefault();
       const text = document.getElementById('comment-text').value.trim();
       const category = document.getElementById('comment-category').value;
+      const sentiment = document.getElementById('comment-sentiment').value;
       const author = document.getElementById('comment-author').value.trim() || 'Anonymous';
       const timestamp = player.getCurrentTime();
 
@@ -296,6 +357,7 @@
           time: timestamp,
           text: text,
           category: category,
+          sentiment: sentiment,
           author: author
         };
         comments.push(comment);
@@ -395,6 +457,44 @@
       if (storedComments) {
         comments = JSON.parse(storedComments);
       }
+    }
+
+    // Toggle comment feed display based on the selected option
+    document.querySelectorAll('input[name="comment-display"]').forEach((elem) => {
+      elem.addEventListener('change', () => {
+        updateCommentFeed();
+      });
+    });
+
+    // Enable or disable audio notifications
+    document.getElementById('audio-notifications').addEventListener('change', (e) => {
+      enableAudioNotifications = e.target.checked;
+    });
+
+    // Play sound for comment category
+    function playSoundForCategory(category) {
+      let soundUrl = '';
+      switch (category) {
+        case 'teamplay':
+          soundUrl = 'sounds/teamplay.mp3';
+          break;
+        case 'mechanics':
+          soundUrl = 'sounds/mechanics.mp3';
+          break;
+        case 'portaling':
+          soundUrl = 'sounds/portaling.mp3';
+          break;
+        case 'movement':
+          soundUrl = 'sounds/movement.mp3';
+          break;
+        case 'game_sense':
+          soundUrl = 'sounds/game_sense.mp3';
+          break;
+        default:
+          soundUrl = 'sounds/default.mp3';
+      }
+      const audio = new Audio(soundUrl);
+      audio.play();
     }
   </script>
 </body>
