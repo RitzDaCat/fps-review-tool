@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>FPS Gameplay Review Tool</title>
+  <!-- Meta Tags for Responsive Design -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- Custom Styles -->
@@ -35,7 +37,7 @@
       position: absolute;
       bottom: 10%;
       left: 5%;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.8);
       color: #fff;
       padding: 10px;
       border-radius: 5px;
@@ -171,6 +173,18 @@
       opacity: 0.6;
     }
 
+    /* Toast Notification Styles */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1055;
+    }
+
+    .toast {
+      min-width: 200px;
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
       #sidebar {
@@ -184,7 +198,7 @@
 </head>
 <body>
   <!-- Sidebar -->
-  <nav id="sidebar">
+  <nav id="sidebar" aria-label="Sidebar with settings and options">
     <div class="sidebar-header">
       <h3>Settings</h3>
     </div>
@@ -214,6 +228,10 @@
         </div>
       </li>
       <li>
+        <label for="audio-volume">Notification Volume</label>
+        <input type="range" id="audio-volume" class="custom-range" min="0" max="1" step="0.1" value="0.5">
+      </li>
+      <li>
         <div class="custom-control custom-radio">
           <input type="radio" id="show-all-comments" name="comment-display" class="custom-control-input" checked>
           <label class="custom-control-label" for="show-all-comments">Show All Comments</label>
@@ -222,6 +240,12 @@
           <input type="radio" id="show-up-to-current-time" name="comment-display" class="custom-control-input">
           <label class="custom-control-label" for="show-up-to-current-time">Show Comments Up to Current Time</label>
         </div>
+      </li>
+      <li>
+        <a href="#" id="help-btn">
+          <i class="fas fa-question-circle"></i>
+          Help
+        </a>
       </li>
     </ul>
   </nav>
@@ -232,7 +256,7 @@
   <!-- Page Content -->
   <div id="content">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <button type="button" id="sidebarCollapse" class="btn btn-dark">
+      <button type="button" id="sidebarCollapse" class="btn btn-dark" aria-label="Toggle sidebar">
         <i class="fas fa-bars"></i>
       </button>
       <a class="navbar-brand ml-3" href="#">FPS Gameplay Review Tool</a>
@@ -253,16 +277,16 @@
           </div>
           <!-- Controls -->
           <div class="mb-3 text-center">
-            <button id="add-comment" class="btn btn-primary">
+            <button id="add-comment" class="btn btn-primary" aria-label="Add Comment">
               <i class="fas fa-comment-medical"></i> Add Comment
             </button>
-            <button id="prev-comment" class="btn btn-secondary">
+            <button id="prev-comment" class="btn btn-secondary" aria-label="Previous Comment">
               <i class="fas fa-step-backward"></i> Previous Comment
             </button>
-            <button id="next-comment" class="btn btn-secondary">
+            <button id="next-comment" class="btn btn-secondary" aria-label="Next Comment">
               <i class="fas fa-step-forward"></i> Next Comment
             </button>
-            <button id="export-comments" class="btn btn-info">
+            <button id="export-comments" class="btn btn-info" aria-label="Share Comments">
               <i class="fas fa-share-alt"></i> Share Comments
             </button>
           </div>
@@ -271,7 +295,7 @@
         <div class="col-md-4">
           <!-- Comment Feed -->
           <h4>Comments</h4>
-          <div id="comment-feed" class="list-group"></div>
+          <div id="comment-feed" class="list-group" aria-label="List of comments"></div>
         </div>
       </div>
     </div>
@@ -322,7 +346,7 @@
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Save Comment</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
@@ -348,7 +372,7 @@
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Import</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
@@ -374,12 +398,60 @@
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Load Video</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Cancel">Cancel</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content bg-light text-dark">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpModalLabel">Help & Tutorial</h5>
+          <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Help Content -->
+          <h4>Welcome to the FPS Gameplay Review Tool!</h4>
+          <p>This application allows coaches to annotate videos and share their feedback with students.</p>
+          <h5>Modes:</h5>
+          <ul>
+            <li><strong>Coach Mode:</strong> Load videos, add comments, and share annotations.</li>
+            <li><strong>Student Mode:</strong> Import annotations shared by a coach and review the feedback.</li>
+          </ul>
+          <h5>Getting Started:</h5>
+          <ol>
+            <li>Select your mode from the sidebar.</li>
+            <li>In <strong>Coach Mode</strong>, load a video and add comments at specific timestamps.</li>
+            <li>In <strong>Student Mode</strong>, import comments using a link or string provided by your coach.</li>
+          </ol>
+          <h5>Controls:</h5>
+          <ul>
+            <li><strong>Add Comment:</strong> Add a new annotation at the current timestamp (Coach Mode only).</li>
+            <li><strong>Previous/Next Comment:</strong> Navigate between comments.</li>
+            <li><strong>Share Comments:</strong> Generate a shareable link with your annotations (Coach Mode only).</li>
+          </ul>
+          <h5>Settings:</h5>
+          <ul>
+            <li><strong>Sound Notifications:</strong> Enable or disable audio cues when comments appear.</li>
+            <li><strong>Comment Display:</strong> Choose to show all comments or only those up to the current time.</li>
+          </ul>
+          <p>If you have any questions or need assistance, feel free to reach out!</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Font Awesome for Icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js"></script>
@@ -393,237 +465,375 @@
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
   <!-- Custom Script -->
   <script>
-    let player;
-    let comments = [];
-    let videoId = '';
-    let currentCommentIndex = -1;
-    let enableAudioNotifications = false;
-    let mode = 'Coach'; // Default mode is 'Coach'
+    (function() {
+      'use strict';
 
-    // Create an AudioContext for sound generation
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Variables
+      let player;
+      let comments = [];
+      let videoId = '';
+      let currentCommentIndex = -1;
+      let enableAudioNotifications = false;
+      let audioVolume = 0.5;
+      let mode = 'Coach'; // Default mode is 'Coach'
+      let audioContext;
+      let userInteracted = false;
 
-    // Load YouTube IFrame API
-    function onYouTubeIframeAPIReady() {
-      // No longer checking for data in URL at page load
-      // User will load video via the sidebar
-    }
+      // Initialize application
+      document.addEventListener('DOMContentLoaded', () => {
+        // Show welcome modal on load
+        $('#helpModal').modal('show');
 
-    // Load the video and initialize the player
-    function loadVideo(videoId) {
-      if (player) {
-        player.destroy();
-      }
-      player = new YT.Player('video-player', {
-        height: '390',
-        width: '640',
-        videoId: videoId,
-        playerVars: {
-          'enablejsapi': 1,
-          'origin': window.location.origin
-        },
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange
-        }
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Initialize event listeners
+        initEventListeners();
       });
-    }
 
-    // Player is ready
-    function onPlayerReady(event) {
-      loadComments();
-      createTimelineMarkers();
-      updateCommentFeed();
-      syncComments();
-    }
-
-    // Player state change
-    function onPlayerStateChange(event) {
-      if (event.data == YT.PlayerState.PLAYING) {
-        syncComments();
-      }
-    }
-
-    // Sync comments with video playback
-    function syncComments() {
-      const currentTime = player.getCurrentTime();
-      const nextCommentIndex = comments.findIndex(comment => comment.time > currentTime);
-
-      if (nextCommentIndex - 1 !== currentCommentIndex) {
-        currentCommentIndex = nextCommentIndex - 1;
-        displayCommentOverlay(comments[currentCommentIndex]);
-        highlightCommentInFeed(currentCommentIndex);
-
-        // Play sound notification if enabled
-        if (enableAudioNotifications && comments[currentCommentIndex]) {
-          playSoundForCategory(comments[currentCommentIndex].category);
-        }
-      }
-
-      if (player.getPlayerState() == YT.PlayerState.PLAYING) {
-        requestAnimationFrame(syncComments);
-      }
-    }
-
-    // Display comment overlay
-    function displayCommentOverlay(comment) {
-      const overlay = document.getElementById('video-overlay');
-      overlay.innerHTML = '';
-      if (comment) {
-        const commentElem = document.createElement('div');
-        commentElem.className = 'video-comment';
-        commentElem.textContent = comment.text;
-        overlay.appendChild(commentElem);
-      }
-    }
-
-    // Highlight comment in feed
-    function highlightCommentInFeed(index) {
-      const commentItems = document.querySelectorAll('.comment-item');
-      commentItems.forEach((item, idx) => {
-        item.classList.toggle('active', idx === index);
-      });
-    }
-
-    // Create timeline markers
-    function createTimelineMarkers() {
-      const timeline = document.getElementById('timeline');
-      timeline.innerHTML = '';
-      const videoDuration = player.getDuration();
-
-      comments.forEach((comment, index) => {
-        const marker = document.createElement('div');
-        marker.className = 'timeline-marker';
-        marker.style.left = (comment.time / videoDuration * 100) + '%';
-        marker.title = comment.text;
-        marker.addEventListener('click', () => {
-          player.seekTo(comment.time);
-        });
-        timeline.appendChild(marker);
-      });
-    }
-
-    // Update comment feed
-    function updateCommentFeed() {
-      const commentFeed = document.getElementById('comment-feed');
-      commentFeed.innerHTML = '';
-      const showUpToCurrentTime = document.getElementById('show-up-to-current-time').checked;
-      const currentTime = player ? player.getCurrentTime() : 0;
-
-      let filteredComments = comments;
-      if (showUpToCurrentTime && player) {
-        filteredComments = comments.filter(comment => comment.time <= currentTime);
-      }
-
-      filteredComments.forEach((comment, index) => {
-        const item = document.createElement('a');
-        item.href = '#';
-        item.className = 'list-group-item list-group-item-action comment-item';
-        item.textContent = formatTime(comment.time) + ' - ' + comment.text;
-        item.addEventListener('click', () => {
-          player.seekTo(comment.time);
+      // Initialize event listeners
+      function initEventListeners() {
+        // Sidebar Toggle
+        $('#sidebarCollapse').on('click', function () {
+          $('#sidebar').toggleClass('active');
+          $('#overlay').fadeToggle();
         });
 
-        // Apply sentiment shading
-        item.classList.add('sentiment-' + comment.sentiment);
+        // Close sidebar when overlay is clicked
+        $('#overlay').on('click', function () {
+          $('#sidebar').removeClass('active');
+          $(this).fadeOut();
+        });
 
-        commentFeed.appendChild(item);
-      });
-    }
+        // Mode Selector
+        document.getElementById('mode-selector').addEventListener('click', () => {
+          confirmModeSwitch();
+        });
 
-    // Add comment
-    document.getElementById('add-comment').addEventListener('click', () => {
-      if (mode === 'Coach') {
-        const currentTime = player.getCurrentTime();
-        document.getElementById('comment-time').value = formatTime(currentTime);
-        $('#commentModal').modal('show');
+        // Load New Video Button
+        document.getElementById('new-video-btn').addEventListener('click', () => {
+          if (mode === 'Coach') {
+            if (comments.length > 0) {
+              if (!confirm('Loading a new video will discard your current comments. Do you wish to continue?')) {
+                return;
+              }
+            }
+            $('#newVideoModal').modal('show');
+          }
+          closeSidebar();
+        });
+
+        // Handle New Video Form Submission
+        document.getElementById('new-video-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const userVideoUrl = document.getElementById('new-video-url').value.trim();
+          const extractedVideoId = extractVideoID(userVideoUrl);
+          if (extractedVideoId) {
+            videoId = extractedVideoId;
+            comments = [];
+            currentCommentIndex = -1;
+            saveComments();
+            loadVideo(videoId);
+            $('#newVideoModal').modal('hide');
+            document.getElementById('new-video-form').reset();
+            showToast('Video loaded successfully.', 'success');
+          } else {
+            showToast('Invalid YouTube URL. Please try again.', 'danger');
+          }
+        });
+
+        // Import Comments Button
+        document.getElementById('import-comments-btn').addEventListener('click', () => {
+          if (mode === 'Student') {
+            $('#importModal').modal('show');
+          }
+          closeSidebar();
+        });
+
+        // Handle Import Form Submission
+        document.getElementById('import-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const inputData = document.getElementById('import-text').value.trim();
+          if (inputData) {
+            importComments(inputData);
+          }
+        });
+
+        // Add Comment Button
+        document.getElementById('add-comment').addEventListener('click', () => {
+          if (mode === 'Coach') {
+            const currentTime = player.getCurrentTime();
+            document.getElementById('comment-time').value = formatTime(currentTime);
+            $('#commentModal').modal('show');
+          }
+        });
+
+        // Handle Comment Form Submission
+        document.getElementById('comment-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          addComment();
+        });
+
+        // Previous and Next Comment Controls
+        document.getElementById('prev-comment').addEventListener('click', () => {
+          navigateToComment(-1);
+        });
+
+        document.getElementById('next-comment').addEventListener('click', () => {
+          navigateToComment(1);
+        });
+
+        // Toggle Comment Display
+        document.querySelectorAll('input[name="comment-display"]').forEach((elem) => {
+          elem.addEventListener('change', () => {
+            updateCommentFeed();
+          });
+        });
+
+        // Enable or Disable Audio Notifications
+        document.getElementById('audio-notifications').addEventListener('change', (e) => {
+          enableAudioNotifications = e.target.checked;
+          if (enableAudioNotifications && !audioContext) {
+            initAudioContext();
+          }
+        });
+
+        // Audio Volume Control
+        document.getElementById('audio-volume').addEventListener('input', (e) => {
+          audioVolume = parseFloat(e.target.value);
+        });
+
+        // Help Button
+        document.getElementById('help-btn').addEventListener('click', () => {
+          $('#helpModal').modal('show');
+          closeSidebar();
+        });
+
+        // Capture user interaction
+        document.body.addEventListener('click', () => {
+          if (!userInteracted) {
+            userInteracted = true;
+            if (enableAudioNotifications && !audioContext) {
+              initAudioContext();
+            }
+          }
+        });
       }
-    });
 
-    // Handle comment form submission
-    document.getElementById('comment-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const text = document.getElementById('comment-text').value.trim();
-      const category = document.getElementById('comment-category').value;
-      const sentiment = document.getElementById('comment-sentiment').value;
-      const author = document.getElementById('comment-author').value.trim() || 'Anonymous';
-      const timestamp = player.getCurrentTime();
-
-      if (text) {
-        const comment = {
-          time: timestamp,
-          text: text,
-          category: category,
-          sentiment: sentiment,
-          author: author
-        };
-        comments.push(comment);
-        comments.sort((a, b) => a.time - b.time);
-        saveComments();
-        createTimelineMarkers();
-        updateCommentFeed();
-        $('#commentModal').modal('hide');
-        document.getElementById('comment-form').reset();
-      }
-    });
-
-    // Previous and Next Comment Controls
-    document.getElementById('prev-comment').addEventListener('click', () => {
-      navigateToComment(-1);
-    });
-
-    document.getElementById('next-comment').addEventListener('click', () => {
-      navigateToComment(1);
-    });
-
-    function navigateToComment(direction) {
-      let newIndex = currentCommentIndex + direction;
-      if (newIndex >= 0 && newIndex < comments.length) {
-        player.seekTo(comments[newIndex].time);
-        currentCommentIndex = newIndex;
-        highlightCommentInFeed(currentCommentIndex);
-      }
-    }
-
-    // Format time helper
-    function formatTime(seconds) {
-      const sec_num = parseInt(seconds, 10);
-      const hours   = Math.floor(sec_num / 3600);
-      const minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-      const secs = sec_num - (hours * 3600) - (minutes * 60);
-      return [hours, minutes, secs]
-        .map(v => v < 10 ? '0' + v : v)
-        .filter((v, i) => v !== '00' || i > 0)
-        .join(':');
-    }
-
-    // Export comments and generate shareable link
-    document.getElementById('export-comments').addEventListener('click', () => {
-      if (mode === 'Coach') {
-        const data = {
-          videoId: videoId,
-          comments: comments
-        };
-        const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(data));
-        const shareableUrl = `${window.location.origin}${window.location.pathname}?data=${compressedData}`;
-        prompt('Copy and share this URL:', shareableUrl);
-      }
-    });
-
-    // Import comments
-    document.getElementById('import-comments-btn').addEventListener('click', () => {
-      if (mode === 'Student') {
-        $('#importModal').modal('show');
+      // Close Sidebar
+      function closeSidebar() {
         $('#sidebar').removeClass('active');
         $('#overlay').fadeOut();
       }
-    });
 
-    // Handle import form submission
-    document.getElementById('import-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const inputData = document.getElementById('import-text').value.trim();
-      if (inputData) {
+      // Initialize AudioContext
+      function initAudioContext() {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          showToast('Web Audio API is not supported in this browser.', 'warning');
+          enableAudioNotifications = false;
+          document.getElementById('audio-notifications').checked = false;
+        }
+      }
+
+      // YouTube IFrame API Ready
+      window.onYouTubeIframeAPIReady = function() {
+        // No action needed here; video will be loaded when user selects to load a video or import comments
+      };
+
+      // Load Video Function
+      function loadVideo(videoId) {
+        if (player) {
+          player.destroy();
+        }
+        player = new YT.Player('video-player', {
+          height: '390',
+          width: '640',
+          videoId: videoId,
+          playerVars: {
+            'enablejsapi': 1,
+            'origin': window.location.origin
+          },
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      }
+
+      // Player Ready
+      function onPlayerReady(event) {
+        loadComments();
+        createTimelineMarkers();
+        updateCommentFeed();
+        syncComments();
+      }
+
+      // Player State Change
+      function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+          syncComments();
+        }
+      }
+
+      // Sync Comments
+      function syncComments() {
+        const currentTime = player.getCurrentTime();
+        const nextCommentIndex = comments.findIndex(comment => comment.time > currentTime);
+
+        if (nextCommentIndex - 1 !== currentCommentIndex) {
+          currentCommentIndex = nextCommentIndex - 1;
+          displayCommentOverlay(comments[currentCommentIndex]);
+          highlightCommentInFeed(currentCommentIndex);
+
+          // Play sound notification if enabled
+          if (enableAudioNotifications && comments[currentCommentIndex]) {
+            playSoundForCategory(comments[currentCommentIndex].category);
+          }
+        }
+
+        if (player.getPlayerState() == YT.PlayerState.PLAYING) {
+          requestAnimationFrame(syncComments);
+        }
+      }
+
+      // Display Comment Overlay
+      function displayCommentOverlay(comment) {
+        const overlay = document.getElementById('video-overlay');
+        overlay.innerHTML = '';
+        if (comment) {
+          const commentElem = document.createElement('div');
+          commentElem.className = 'video-comment';
+          commentElem.textContent = comment.text;
+          overlay.appendChild(commentElem);
+        }
+      }
+
+      // Highlight Comment in Feed
+      function highlightCommentInFeed(index) {
+        const commentItems = document.querySelectorAll('.comment-item');
+        commentItems.forEach((item, idx) => {
+          item.classList.toggle('active', idx === index);
+        });
+      }
+
+      // Create Timeline Markers
+      function createTimelineMarkers() {
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = '';
+        const videoDuration = player.getDuration();
+
+        comments.forEach((comment, index) => {
+          const marker = document.createElement('div');
+          marker.className = 'timeline-marker';
+          marker.style.left = (comment.time / videoDuration * 100) + '%';
+          marker.title = comment.text;
+          marker.addEventListener('click', () => {
+            player.seekTo(comment.time);
+          });
+          timeline.appendChild(marker);
+        });
+      }
+
+      // Update Comment Feed
+      function updateCommentFeed() {
+        const commentFeed = document.getElementById('comment-feed');
+        commentFeed.innerHTML = '';
+        const showUpToCurrentTime = document.getElementById('show-up-to-current-time').checked;
+        const currentTime = player ? player.getCurrentTime() : 0;
+
+        let filteredComments = comments;
+        if (showUpToCurrentTime && player) {
+          filteredComments = comments.filter(comment => comment.time <= currentTime);
+        }
+
+        filteredComments.forEach((comment, index) => {
+          const item = document.createElement('a');
+          item.href = '#';
+          item.className = 'list-group-item list-group-item-action comment-item';
+          item.textContent = formatTime(comment.time) + ' - ' + comment.text;
+          item.addEventListener('click', () => {
+            player.seekTo(comment.time);
+          });
+
+          // Apply sentiment shading
+          item.classList.add('sentiment-' + comment.sentiment);
+
+          // Add category icon
+          const categoryIcon = document.createElement('i');
+          categoryIcon.className = 'fas fa-tag mr-2';
+          categoryIcon.setAttribute('aria-label', 'Category');
+          item.prepend(categoryIcon);
+
+          commentFeed.appendChild(item);
+        });
+      }
+
+      // Add Comment
+      function addComment() {
+        const text = document.getElementById('comment-text').value.trim();
+        const category = document.getElementById('comment-category').value;
+        const sentiment = document.getElementById('comment-sentiment').value;
+        const author = document.getElementById('comment-author').value.trim() || 'Anonymous';
+        const timestamp = player.getCurrentTime();
+
+        if (text) {
+          const comment = {
+            time: timestamp,
+            text: text,
+            category: category,
+            sentiment: sentiment,
+            author: author
+          };
+          comments.push(comment);
+          comments.sort((a, b) => a.time - b.time);
+          saveComments();
+          createTimelineMarkers();
+          updateCommentFeed();
+          $('#commentModal').modal('hide');
+          document.getElementById('comment-form').reset();
+          showToast('Comment added successfully.', 'success');
+        }
+      }
+
+      // Navigate to Comment
+      function navigateToComment(direction) {
+        let newIndex = currentCommentIndex + direction;
+        if (newIndex >= 0 && newIndex < comments.length) {
+          player.seekTo(comments[newIndex].time);
+          currentCommentIndex = newIndex;
+          highlightCommentInFeed(currentCommentIndex);
+        }
+      }
+
+      // Format Time Helper
+      function formatTime(seconds) {
+        const sec_num = parseInt(seconds, 10);
+        const hours   = Math.floor(sec_num / 3600);
+        const minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+        const secs = sec_num - (hours * 3600) - (minutes * 60);
+        return [hours, minutes, secs]
+          .map(v => v < 10 ? '0' + v : v)
+          .filter((v, i) => v !== '00' || i > 0)
+          .join(':');
+      }
+
+      // Export Comments
+      document.getElementById('export-comments').addEventListener('click', () => {
+        if (mode === 'Coach') {
+          const data = {
+            videoId: videoId,
+            comments: comments
+          };
+          const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+          const shareableUrl = `${window.location.origin}${window.location.pathname}?data=${compressedData}`;
+          prompt('Copy and share this URL:', shareableUrl);
+        }
+      });
+
+      // Import Comments Function
+      function importComments(inputData) {
         const urlParams = new URLSearchParams(inputData.split('?')[1]);
         if (urlParams.has('data')) {
           const compressedData = urlParams.get('data');
@@ -634,159 +844,157 @@
             loadVideo(videoId);
             $('#importModal').modal('hide');
             document.getElementById('import-form').reset();
+            showToast('Comments imported successfully.', 'success');
           } catch (error) {
-            alert('Failed to load data from input.');
+            showToast('Failed to load data from input.', 'danger');
           }
         } else {
-          alert('Invalid input. Please ensure you have pasted the correct link or string.');
+          showToast('Invalid input. Please ensure you have pasted the correct link or string.', 'warning');
         }
       }
-    });
 
-    // Extract YouTube Video ID from URL
-    function extractVideoID(url) {
-      const regex = /(?:\?v=|\/embed\/|\.be\/)([^&#?]+)/;
-      const match = url.match(regex);
-      return match && match[1] ? match[1] : null;
-    }
-
-    // Save comments to localStorage
-    function saveComments() {
-      const key = 'comments_' + videoId;
-      localStorage.setItem(key, JSON.stringify(comments));
-    }
-
-    // Load comments from localStorage
-    function loadComments() {
-      const key = 'comments_' + videoId;
-      const storedComments = localStorage.getItem(key);
-      if (storedComments) {
-        comments = JSON.parse(storedComments);
-      } else {
-        comments = [];
-      }
-    }
-
-    // Toggle comment feed display based on the selected option
-    document.querySelectorAll('input[name="comment-display"]').forEach((elem) => {
-      elem.addEventListener('change', () => {
-        updateCommentFeed();
-      });
-    });
-
-    // Enable or disable audio notifications
-    document.getElementById('audio-notifications').addEventListener('change', (e) => {
-      enableAudioNotifications = e.target.checked;
-    });
-
-    // Play sound for comment category using Web Audio API
-    function playSoundForCategory(category) {
-      let frequency = 440; // Default frequency (A4 note)
-      let duration = 0.5; // Duration in seconds
-
-      // Assign different frequencies to different categories
-      switch (category) {
-        case 'teamplay':
-          frequency = 523.25; // C5 note
-          break;
-        case 'mechanics':
-          frequency = 587.33; // D5 note
-          break;
-        case 'portaling':
-          frequency = 659.25; // E5 note
-          break;
-        case 'movement':
-          frequency = 698.46; // F5 note
-          break;
-        case 'game_sense':
-          frequency = 783.99; // G5 note
-          break;
-        default:
-          frequency = 440; // A4 note
+      // Extract YouTube Video ID from URL
+      function extractVideoID(url) {
+        const regex = /(?:\?v=|\/embed\/|\.be\/)([^&#?]+)/;
+        const match = url.match(regex);
+        return match && match[1] ? match[1] : null;
       }
 
-      // Create an oscillator node
-      const oscillator = audioContext.createOscillator();
-      oscillator.type = 'sine'; // Waveform type: sine, square, sawtooth, triangle
-      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-
-      // Create a gain node for volume control
-      const gainNode = audioContext.createGain();
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Volume (0.0 to 1.0)
-
-      // Connect nodes
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Start and stop the oscillator
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + duration);
-    }
-
-    // Sidebar Toggle
-    $('#sidebarCollapse').on('click', function () {
-      $('#sidebar').toggleClass('active');
-      $('#overlay').fadeToggle();
-    });
-
-    // Close sidebar when overlay is clicked
-    $('#overlay').on('click', function () {
-      $('#sidebar').removeClass('active');
-      $(this).fadeOut();
-    });
-
-    // Load New Video Button
-    document.getElementById('new-video-btn').addEventListener('click', () => {
-      if (mode === 'Coach') {
-        $('#newVideoModal').modal('show');
+      // Save Comments to Local Storage
+      function saveComments() {
+        const key = mode + '_comments_' + videoId;
+        localStorage.setItem(key, JSON.stringify(comments));
       }
-      $('#sidebar').removeClass('active');
-      $('#overlay').fadeOut();
-    });
 
-    // Handle New Video Form Submission
-    document.getElementById('new-video-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const userVideoUrl = document.getElementById('new-video-url').value.trim();
-      const extractedVideoId = extractVideoID(userVideoUrl);
-      if (extractedVideoId) {
-        videoId = extractedVideoId;
-        comments = [];
-        currentCommentIndex = -1;
-        saveComments();
-        loadVideo(videoId);
-        $('#newVideoModal').modal('hide');
-        document.getElementById('new-video-form').reset();
-      } else {
-        alert('Invalid YouTube URL.');
+      // Load Comments from Local Storage
+      function loadComments() {
+        const key = mode + '_comments_' + videoId;
+        const storedComments = localStorage.getItem(key);
+        if (storedComments) {
+          comments = JSON.parse(storedComments);
+        } else {
+          comments = [];
+        }
       }
-    });
 
-    // Mode Selector
-    document.getElementById('mode-selector').addEventListener('click', () => {
-      mode = mode === 'Coach' ? 'Student' : 'Coach';
-      document.getElementById('current-mode').textContent = mode;
+      // Play Sound for Comment Category using Web Audio API
+      function playSoundForCategory(category) {
+        if (!audioContext) return;
 
-      // Update UI based on mode
-      if (mode === 'Coach') {
-        document.getElementById('add-comment').classList.remove('disabled');
-        document.getElementById('export-comments').classList.remove('disabled');
-        document.getElementById('new-video-btn').classList.remove('disabled');
-        document.getElementById('import-comments-li').style.display = 'none';
-      } else {
-        document.getElementById('add-comment').classList.add('disabled');
-        document.getElementById('export-comments').classList.add('disabled');
-        document.getElementById('new-video-btn').classList.add('disabled');
-        document.getElementById('import-comments-li').style.display = 'block';
+        let frequency = 440; // Default frequency (A4 note)
+        let duration = 0.5; // Duration in seconds
+
+        // Assign different frequencies to different categories
+        switch (category) {
+          case 'teamplay':
+            frequency = 523.25; // C5 note
+            break;
+          case 'mechanics':
+            frequency = 587.33; // D5 note
+            break;
+          case 'portaling':
+            frequency = 659.25; // E5 note
+            break;
+          case 'movement':
+            frequency = 698.46; // F5 note
+            break;
+          case 'game_sense':
+            frequency = 783.99; // G5 note
+            break;
+          default:
+            frequency = 440; // A4 note
+        }
+
+        // Create an oscillator node
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = 'sine'; // Waveform type: sine, square, sawtooth, triangle
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+        // Create a gain node for volume control
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(audioVolume, audioContext.currentTime); // Volume (0.0 to 1.0)
+
+        // Connect nodes
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Start and stop the oscillator
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
       }
-      $('#sidebar').removeClass('active');
-      $('#overlay').fadeOut();
-    });
 
-    // Initialize UI based on default mode
-    if (mode === 'Coach') {
-      document.getElementById('import-comments-li').style.display = 'none';
-    }
+      // Confirm Mode Switch
+      function confirmModeSwitch() {
+        const newMode = mode === 'Coach' ? 'Student' : 'Coach';
+        if (confirm(`Switch to ${newMode} mode? This will reset the current session.`)) {
+          mode = newMode;
+          document.getElementById('current-mode').textContent = mode;
+
+          // Reset application state
+          videoId = '';
+          comments = [];
+          currentCommentIndex = -1;
+          if (player) {
+            player.destroy();
+          }
+          document.getElementById('video-player').innerHTML = '';
+          document.getElementById('timeline').innerHTML = '';
+          document.getElementById('comment-feed').innerHTML = '';
+          showToast(`Switched to ${mode} mode.`, 'info');
+
+          // Update UI based on mode
+          updateUIBasedOnMode();
+        }
+      }
+
+      // Update UI Based on Mode
+      function updateUIBasedOnMode() {
+        if (mode === 'Coach') {
+          document.getElementById('add-comment').classList.remove('disabled');
+          document.getElementById('export-comments').classList.remove('disabled');
+          document.getElementById('new-video-btn').classList.remove('disabled');
+          document.getElementById('import-comments-li').style.display = 'none';
+        } else {
+          document.getElementById('add-comment').classList.add('disabled');
+          document.getElementById('export-comments').classList.add('disabled');
+          document.getElementById('new-video-btn').classList.add('disabled');
+          document.getElementById('import-comments-li').style.display = 'block';
+        }
+      }
+
+      // Show Toast Notification
+      function showToast(message, type) {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.role = 'alert';
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        toast.innerHTML = `
+          <div class="d-flex">
+            <div class="toast-body">
+              ${message}
+            </div>
+            <button type="button" class="ml-auto mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        `;
+
+        toastContainer.appendChild(toast);
+        $(toast).toast({ delay: 3000 });
+        $(toast).toast('show');
+
+        $(toast).on('hidden.bs.toast', () => {
+          toast.remove();
+        });
+      }
+
+      // Initialize UI Based on Default Mode
+      updateUIBasedOnMode();
+
+    })();
   </script>
 </body>
 </html>
