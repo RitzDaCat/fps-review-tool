@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- Custom Styles -->
   <style>
+    /* General Styles */
+    body {
+      overflow-x: hidden;
+    }
+
     /* Video Container */
     #video-container {
       position: relative;
@@ -92,55 +97,153 @@
       background-color: #f8e0e0; /* Light red */
     }
 
-    /* Controls */
-    .custom-control {
-      margin-right: 15px;
+    /* Sidebar Styles */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background-color: #343a40;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+      z-index: 1000;
+    }
+
+    #sidebar.active {
+      left: 0;
+    }
+
+    #sidebar .sidebar-header {
+      padding: 10px 15px;
+      background-color: #343a40;
+      color: #fff;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+
+    #sidebar ul.components {
+      padding: 20px 0;
+      list-style: none;
+    }
+
+    #sidebar ul li {
+      padding: 10px 15px;
+      font-size: 1.1em;
+      display: block;
+      color: #d1d1d1;
+    }
+
+    #sidebar ul li:hover {
+      background: #575d63;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    /* Toggle Button */
+    #sidebarCollapse {
+      background: #343a40;
+      border: none;
+      color: #fff;
+      padding: 10px;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    /* Overlay for Main Content when Sidebar is Open */
+    #overlay {
+      position: fixed;
+      display: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 999;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      #sidebar {
+        left: -250px;
+      }
+      #sidebar.active {
+        left: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <h1 class="text-center my-4">FPS Gameplay Review Tool</h1>
-    <div class="row">
-      <!-- Video and Timeline Column -->
-      <div class="col-md-8">
-        <!-- Video Container -->
-        <div id="video-container" class="mb-3">
-          <div id="video-player"></div>
-          <div id="video-overlay"></div>
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <h3>Settings</h3>
+    </div>
+    <ul class="components">
+      <li>
+        <button id="new-video-btn" class="btn btn-primary btn-block">Load New Video</button>
+      </li>
+      <li>
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="audio-notifications">
+          <label class="custom-control-label" for="audio-notifications">Enable Sound Notifications</label>
         </div>
-        <!-- Timeline -->
-        <div id="timeline-container" class="mb-3">
-          <div id="timeline"></div>
+      </li>
+      <li>
+        <div class="custom-control custom-radio">
+          <input type="radio" id="show-all-comments" name="comment-display" class="custom-control-input" checked>
+          <label class="custom-control-label" for="show-all-comments">Show All Comments</label>
         </div>
-        <!-- Controls -->
-        <div class="mb-3 text-center">
-          <button id="add-comment" class="btn btn-primary">Add Comment</button>
-          <button id="prev-comment" class="btn btn-secondary">Previous Comment</button>
-          <button id="next-comment" class="btn btn-secondary">Next Comment</button>
-          <button id="export-comments" class="btn btn-info">Share Comments</button>
+        <div class="custom-control custom-radio">
+          <input type="radio" id="show-up-to-current-time" name="comment-display" class="custom-control-input">
+          <label class="custom-control-label" for="show-up-to-current-time">Show Comments Up to Current Time</label>
         </div>
-        <!-- Additional Controls -->
-        <div class="mb-3 text-center">
-          <div class="custom-control custom-radio custom-control-inline">
-            <input type="radio" id="show-all-comments" name="comment-display" class="custom-control-input" checked>
-            <label class="custom-control-label" for="show-all-comments">Show All Comments</label>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Overlay -->
+  <div id="overlay"></div>
+
+  <!-- Page Content -->
+  <div id="content">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <button type="button" id="sidebarCollapse" class="btn btn-dark">
+        <i class="fas fa-bars"></i>
+      </button>
+      <a class="navbar-brand ml-3" href="#">FPS Gameplay Review Tool</a>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row mt-4">
+        <!-- Video and Timeline Column -->
+        <div class="col-md-8">
+          <!-- Video Container -->
+          <div id="video-container" class="mb-3">
+            <div id="video-player"></div>
+            <div id="video-overlay"></div>
           </div>
-          <div class="custom-control custom-radio custom-control-inline">
-            <input type="radio" id="show-up-to-current-time" name="comment-display" class="custom-control-input">
-            <label class="custom-control-label" for="show-up-to-current-time">Show Comments Up to Current Time</label>
+          <!-- Timeline -->
+          <div id="timeline-container" class="mb-3">
+            <div id="timeline"></div>
           </div>
-          <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="audio-notifications">
-            <label class="custom-control-label" for="audio-notifications">Enable Sound Notifications</label>
+          <!-- Controls -->
+          <div class="mb-3 text-center">
+            <button id="add-comment" class="btn btn-primary">Add Comment</button>
+            <button id="prev-comment" class="btn btn-secondary">Previous Comment</button>
+            <button id="next-comment" class="btn btn-secondary">Next Comment</button>
+            <button id="export-comments" class="btn btn-info">Share Comments</button>
           </div>
         </div>
-      </div>
-      <!-- Comments Column -->
-      <div class="col-md-4">
-        <!-- Comment Feed -->
-        <h4>Comments</h4>
-        <div id="comment-feed" class="list-group"></div>
+        <!-- Comments Column -->
+        <div class="col-md-4">
+          <!-- Comment Feed -->
+          <h4>Comments</h4>
+          <div id="comment-feed" class="list-group"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -197,6 +300,37 @@
     </div>
   </div>
 
+  <!-- Load New Video Modal -->
+  <div class="modal fade" id="newVideoModal" tabindex="-1" aria-labelledby="newVideoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newVideoModalLabel">Load New Video</h5>
+          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="new-video-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="new-video-url">YouTube Video URL</label>
+              <input type="text" id="new-video-url" class="form-control" placeholder="Enter YouTube video URL" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Load Video</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay for Main Content -->
+  <div id="overlay"></div>
+
+  <!-- Font Awesome for Icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   <!-- Bootstrap JS and Dependencies -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
@@ -213,6 +347,9 @@
     let currentCommentIndex = -1;
     let enableAudioNotifications = false;
 
+    // Create an AudioContext for sound generation
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
     // Load YouTube IFrame API
     function onYouTubeIframeAPIReady() {
       checkForDataInUrl();
@@ -220,6 +357,9 @@
 
     // Load the video and initialize the player
     function loadVideo(videoId) {
+      if (player) {
+        player.destroy();
+      }
       player = new YT.Player('video-player', {
         height: '390',
         width: '640',
@@ -237,6 +377,7 @@
 
     // Player is ready
     function onPlayerReady(event) {
+      loadComments();
       createTimelineMarkers();
       updateCommentFeed();
       syncComments();
@@ -425,15 +566,8 @@
           alert('Failed to load data from URL.');
         }
       } else {
-        // If no data in URL, prompt user to enter video URL
-        const userVideoUrl = prompt('Enter YouTube Video URL:');
-        const extractedVideoId = extractVideoID(userVideoUrl);
-        if (extractedVideoId) {
-          videoId = extractedVideoId;
-          loadVideo(videoId);
-        } else {
-          alert('Invalid YouTube URL.');
-        }
+        // Open the new video modal to enter a video URL
+        $('#newVideoModal').modal('show');
       }
     }
 
@@ -456,6 +590,8 @@
       const storedComments = localStorage.getItem(key);
       if (storedComments) {
         comments = JSON.parse(storedComments);
+      } else {
+        comments = [];
       }
     }
 
@@ -471,31 +607,86 @@
       enableAudioNotifications = e.target.checked;
     });
 
-    // Play sound for comment category
+    // Play sound for comment category using Web Audio API
     function playSoundForCategory(category) {
-      let soundUrl = '';
+      let frequency = 440; // Default frequency (A4 note)
+      let duration = 0.5; // Duration in seconds
+
+      // Assign different frequencies to different categories
       switch (category) {
         case 'teamplay':
-          soundUrl = 'sounds/teamplay.mp3';
+          frequency = 523.25; // C5 note
           break;
         case 'mechanics':
-          soundUrl = 'sounds/mechanics.mp3';
+          frequency = 587.33; // D5 note
           break;
         case 'portaling':
-          soundUrl = 'sounds/portaling.mp3';
+          frequency = 659.25; // E5 note
           break;
         case 'movement':
-          soundUrl = 'sounds/movement.mp3';
+          frequency = 698.46; // F5 note
           break;
         case 'game_sense':
-          soundUrl = 'sounds/game_sense.mp3';
+          frequency = 783.99; // G5 note
           break;
         default:
-          soundUrl = 'sounds/default.mp3';
+          frequency = 440; // A4 note
       }
-      const audio = new Audio(soundUrl);
-      audio.play();
+
+      // Create an oscillator node
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine'; // Waveform type: sine, square, sawtooth, triangle
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+      // Create a gain node for volume control
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Volume (0.0 to 1.0)
+
+      // Connect nodes
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // Start and stop the oscillator
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
     }
+
+    // Sidebar Toggle
+    $('#sidebarCollapse').on('click', function () {
+      $('#sidebar').toggleClass('active');
+      $('#overlay').fadeToggle();
+    });
+
+    // Close sidebar when overlay is clicked
+    $('#overlay').on('click', function () {
+      $('#sidebar').removeClass('active');
+      $(this).fadeOut();
+    });
+
+    // Load New Video Button
+    document.getElementById('new-video-btn').addEventListener('click', () => {
+      $('#newVideoModal').modal('show');
+      $('#sidebar').removeClass('active');
+      $('#overlay').fadeOut();
+    });
+
+    // Handle New Video Form Submission
+    document.getElementById('new-video-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userVideoUrl = document.getElementById('new-video-url').value.trim();
+      const extractedVideoId = extractVideoID(userVideoUrl);
+      if (extractedVideoId) {
+        videoId = extractedVideoId;
+        comments = [];
+        currentCommentIndex = -1;
+        saveComments();
+        loadVideo(videoId);
+        $('#newVideoModal').modal('hide');
+        document.getElementById('new-video-form').reset();
+      } else {
+        alert('Invalid YouTube URL.');
+      }
+    });
   </script>
 </body>
 </html>
