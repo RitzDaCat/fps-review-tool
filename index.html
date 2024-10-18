@@ -3,941 +3,1537 @@
 <head>
   <meta charset="UTF-8">
   <title>FPS Gameplay Review Tool</title>
-  <!-- Meta Tags for Responsive Design -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS and DaisyUI -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Custom Styles -->
   <style>
-    /* [Your existing CSS styles] */
-    /* General Styles */
-    body {
-      overflow-x: hidden;
+    /* Sidebar Styling */
+    .sidebar {
+      width: 250px;
+      transition: transform 0.3s ease-in-out;
+      transform: translateX(-250px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      z-index: 1000;
+    }
+    .sidebar.open {
+      transform: translateX(0);
     }
 
-    /* Video Container */
-    #video-container {
-      position: relative;
-      width: 100%;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    /* Video Overlay */
-    #video-overlay {
-      position: absolute;
+    /* Overlay when Sidebar is Open */
+    .overlay {
+      position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease-in-out;
+      z-index: 999;
+    }
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
     }
 
-    /* Video Comment Overlay */
-    .video-comment {
-      position: absolute;
-      bottom: 10%;
-      left: 5%;
-      background: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      max-width: 90%;
-      animation: fadeInOut 5s ease-in-out;
+    /* Video Grid for Team POV */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
     }
 
-    @keyframes fadeInOut {
-      0% { opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    /* Timeline */
-    #timeline-container {
-      position: relative;
-      width: 100%;
-      max-width: 640px;
-      height: 20px;
-      background-color: #333;
-      margin: 10px auto;
-    }
-
-    #timeline {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
+    /* Timeline Marker */
     .timeline-marker {
       position: absolute;
-      width: 4px;
       height: 100%;
+      width: 4px;
       background-color: #f1c40f;
       cursor: pointer;
     }
 
-    /* Comment Feed */
-    #comment-feed {
-      max-height: 500px;
-      overflow-y: auto;
+    .current-comment {
+      border: 2px solid #4CAF50;
+      transform: scale(1.02);
+      transition: all 0.3s ease;
+      background-color: #e0ffe0; /* Light green background for emphasis */
     }
 
-    .comment-item {
+    /* Toast Container */
+    #toast-container {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1001;
+    }
+
+    /* Tooltip Styling (Using DaisyUI) */
+    .tooltip {
       position: relative;
-      padding-left: 50px;
     }
 
-    .comment-emoji {
+    .tooltip:hover::after {
+      content: attr(data-tip);
       position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      white-space: nowrap;
+      z-index: 1002;
+      opacity: 1;
+      transition: opacity 0.2s ease-in-out;
     }
 
-    .comment-delete {
+    .tooltip::after {
+      content: '';
       position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-      color: #dc3545;
-    }
-
-    .comment-item.active {
-      background-color: #f1c40f;
-    }
-
-    /* Sentiment Shading */
-    .sentiment-good {
-      background-color: #e0f8e0; /* Light green */
-    }
-
-    .sentiment-warning {
-      background-color: #fff8e0; /* Light yellow */
-    }
-
-    .sentiment-bad {
-      background-color: #f8e0e0; /* Light red */
-    }
-
-    /* Video Thumbnail */
-    .video-thumbnail {
-      width: 100px;
-      height: 75px;
-      object-fit: cover;
-    }
-
-    /* Video List in Sidebar */
-    #video-list {
-      list-style-type: none;
-      padding-left: 0;
-    }
-
-    #video-list li {
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-
-    #video-list li.active {
-      background-color: #e9ecef;
-    }
-
-    /* Adjust content when sidebar is visible */
-    @media (min-width: 992px) {
-      #content {
-        margin-left: 250px;
-      }
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent #333 transparent;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
     }
   </style>
 </head>
-<body>
-  <!-- Toolbar -->
-  <nav class="navbar navbar-dark bg-dark px-3">
-    <div class="container-fluid">
-      <button type="button" id="sidebarCollapse" class="btn btn-dark me-2" aria-label="Toggle sidebar" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
-        <i class="bi bi-list"></i>
+<body class="bg-gray-100 font-sans">
+  <!-- Sidebar Navigation -->
+  <div id="sidebar" class="sidebar bg-base-100 shadow-lg p-4">
+    <h2 class="text-2xl font-bold mb-6 text-center">Navigation</h2>
+    <ul class="menu p-0 space-y-2">
+      <li>
+        <button id="nav-home" class="btn btn-ghost w-full text-left flex items-center space-x-2">
+          <!-- Home Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6" />
+          </svg>
+          <span>Home</span>
+        </button>
+      </li>
+      <li>
+        <button id="nav-video-list" class="btn btn-ghost w-full text-left flex items-center space-x-2">
+          <!-- Video List Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span>Video List</span>
+        </button>
+      </li>
+      <li>
+        <button id="nav-team-pov" class="btn btn-ghost w-full text-left flex items-center space-x-2">
+          <!-- Team POV Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-5m-5 0L12 12m5 8V20M7 20H2v-5m5 0L12 12m-5 8V20" />
+          </svg>
+          <span>Team POV</span>
+        </button>
+      </li>
+      <li>
+        <button id="nav-settings" class="btn btn-ghost w-full text-left flex items-center space-x-2">
+          <!-- Settings Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.978a1 1 0 00.95.69h4.164c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.286 3.978c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.286-3.978a1 1 0 00-.364-1.118L2.515 9.405c-.783-.57-.38-1.81.588-1.81h4.164a1 1 0 00.95-.69l1.286-3.978z" />
+          </svg>
+          <span>Settings</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Overlay -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 p-6 ml-0 md:ml-0">
+    <!-- Header with Toggle Button -->
+    <div class="flex justify-between items-center mb-4">
+      <button id="toggle-sidebar" class="btn btn-square btn-ghost">
+        <!-- Hamburger Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
       </button>
-      <h5 class="navbar-brand mb-0">FPS Gameplay Review Tool</h5>
-      <div class="d-flex">
-        <button class="btn btn-outline-light me-2" id="load-video-btn">
-          <i class="bi bi-film"></i> Load New Video
-        </button>
-        <button class="btn btn-outline-light me-2" id="import-comments-btn">
-          <i class="bi bi-cloud-arrow-down-fill"></i> Import Comments
-        </button>
-        <button class="btn btn-outline-light me-2" id="help-btn">
-          <i class="bi bi-question-circle-fill"></i> Help
-        </button>
-      </div>
+      <h1 class="text-3xl font-bold">FPS Gameplay Review Tool</h1>
+      <div></div> <!-- Placeholder for alignment -->
     </div>
-  </nav>
 
-  <!-- Sidebar -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="sidebarLabel"><i class="bi bi-gear-fill"></i> Settings</h5>
-      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-      <!-- Author Name Input -->
-      <div class="mb-3">
-        <label for="author-name" class="form-label">Author Name</label>
-        <input type="text" id="author-name" class="form-control" placeholder="Enter your name">
-      </div>
-      <!-- Video List -->
-      <h6>Loaded Videos</h6>
-      <ul id="video-list">
-        <!-- Videos will be dynamically added here -->
-      </ul>
-      <hr>
-      <h6>Settings</h6>
-      <ul class="components list-unstyled">
-        <li>
-          <div class="form-check form-switch ms-2">
-            <input class="form-check-input" type="checkbox" id="audio-notifications">
-            <label class="form-check-label" for="audio-notifications">Enable Sound Notifications</label>
-          </div>
-        </li>
-        <li class="ms-2">
-          <label for="audio-volume">Notification Volume</label>
-          <input type="range" id="audio-volume" class="form-range" min="0" max="1" step="0.1" value="0.5">
-        </li>
-        <li class="ms-2">
-          <label>Comment Display Options</label>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="comment-display" id="show-all-comments" checked>
-            <label class="form-check-label" for="show-all-comments">
-              Show All Comments
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="comment-display" id="show-up-to-current-time">
-            <label class="form-check-label" for="show-up-to-current-time">
-              Show Comments Up to Current Time
-            </label>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 space-y-2"></div>
 
-  <!-- Page Content -->
-  <div id="content">
-    <div class="container-fluid">
-      <div class="row mt-4">
-        <!-- Video and Timeline Column -->
-        <div class="col-lg-8 col-md-12">
-          <!-- Video Container -->
-          <div id="video-container" class="card shadow-sm mb-3">
-            <iframe id="video-player" width="640" height="390" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            <div id="video-overlay"></div>
-          </div>
-          <!-- Timeline -->
-          <div id="timeline-container" class="mb-3">
-            <div id="timeline"></div>
-          </div>
-          <!-- Controls -->
-          <div class="mb-3 text-center">
-            <button id="add-comment" class="btn btn-primary me-2" aria-label="Add Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
-              <i class="bi bi-plus-circle"></i> Add Comment
-            </button>
-            <div class="btn-group" role="group" aria-label="Comment navigation">
-              <button id="prev-comment" class="btn btn-secondary" aria-label="Previous Comment" data-bs-toggle="tooltip" title="Previous Comment">
-                <i class="bi bi-skip-backward-fill"></i>
-              </button>
-              <button id="next-comment" class="btn btn-secondary" aria-label="Next Comment" data-bs-toggle="tooltip" title="Next Comment">
-                <i class="bi bi-skip-forward-fill"></i>
-              </button>
-            </div>
-            <button id="export-comments" class="btn btn-info ms-2" aria-label="Share Comments">
-              <i class="bi bi-share-fill"></i> Share Comments
-            </button>
-            <button id="export-comments-file" class="btn btn-secondary ms-2" aria-label="Export Comments to File">
-              <i class="bi bi-cloud-arrow-up-fill"></i> Export Comments to File
-            </button>
-          </div>
+    <!-- Home View -->
+    <div id="home-view" class="block">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Single Video Player -->
+        <div class="card bg-base-100 shadow-lg p-4">
+          <div id="player-home"></div>
         </div>
-        <!-- Comments Column -->
-        <div class="col-lg-4 col-md-12">
+
+        <!-- Comments Section -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Comments</h4>
+
+          <!-- Search and Filter Controls -->
+          <div class="mb-4">
+            <input type="text" id="search-comments-home" class="input input-bordered w-full" placeholder="Search comments..." />
+          </div>
+          <div class="flex flex-col sm:flex-row sm:space-x-2 mb-4">
+            <select id="filter-sentiment-home" class="select select-bordered mb-2 sm:mb-0">
+              <option value="">All Sentiments</option>
+              <option value="good">Good</option>
+              <option value="warning">Warning</option>
+              <option value="bad">Bad</option>
+            </select>
+            <select id="filter-category-home" class="select select-bordered mb-2 sm:mb-0">
+              <option value="">All Categories</option>
+              <option value="gameplay">Gameplay</option>
+              <option value="crosshair">Crosshair Placement</option>
+              <option value="movement">Movement</option>
+            </select>
+            <select id="sort-comments-home" class="select select-bordered">
+              <option value="timestamp-asc">Time: Ascending</option>
+              <option value="timestamp-desc">Time: Descending</option>
+              <option value="sentiment">Sentiment</option>
+              <option value="category">Category</option>
+            </select>
+          </div>
+
           <!-- Comment Feed -->
-          <h4>Comments</h4>
-          <div id="comment-feed" class="list-group" aria-label="List of comments">
-            <!-- Comments dynamically added here -->
+          <div id="comment-feed-home" class="overflow-y-auto bg-base-100 rounded-lg shadow-lg p-4 space-y-4 h-96">
+            <!-- Comments will be dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-center space-x-4 mt-4">
+        <label for="commentModalToggle" class="btn btn-primary flex items-center space-x-2 cursor-pointer">
+          <!-- Add Comment Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Add Comment</span>
+        </label>
+        <button id="prev-comment-home" class="btn flex items-center space-x-2">
+          <!-- Previous Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Previous</span>
+        </button>
+        <button id="next-comment-home" class="btn flex items-center space-x-2">
+          <span>Next</span>
+          <!-- Next Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        <button id="export-comments-home" class="btn btn-success flex items-center space-x-2">
+          <!-- Export Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 12l5 5m0 0l5-5m-5 5V4" />
+          </svg>
+          <span>Share Comments</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Video List View (Initially Hidden) -->
+    <div id="video-list-view" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Video List</h2>
+      <div class="space-y-6">
+        <!-- Single View Videos -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Single View Videos</h3>
+          <div id="single-view-videos" class="space-y-4">
+            <!-- Single view video items will be dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Team View Videos -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Team View Videos</h3>
+          <div id="team-view-videos" class="space-y-4">
+            <!-- Team view video items will be dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Remove All Videos Button -->
+        <div>
+          <button id="remove-all-videos-list" class="btn btn-error w-full">Remove All Videos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team POV View (Initially Hidden) -->
+    <div id="team-pov-view" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Team POV</h2>
+      <div class="flex flex-col space-y-4">
+        <!-- Video Player Slots -->
+        <div class="video-grid" id="team-video-grid">
+          <!-- Player Slots will be dynamically populated -->
+        </div>
+
+        <!-- Synchronized Playback Buttons -->
+        <div class="flex space-x-2">
+          <button id="start-all" class="btn btn-primary flex-1">Start All Videos Simultaneously</button>
+          <button id="pause-all" class="btn btn-secondary flex-1">Pause All Videos</button>
+        </div>
+
+        <!-- Save Team Setup Button -->
+        <button id="save-team-setup" class="btn btn-secondary w-full">Save Current Team Setup</button>
+
+        <!-- Comment Feed for Team POV -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Team Comments</h4>
+          <div id="comment-feed-team" class="overflow-y-auto bg-base-100 rounded-lg shadow-lg p-4 space-y-4 h-96">
+            <!-- Team comments will be dynamically populated -->
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Comment Modal -->
-  <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="comment-form">
-          <div class="modal-header">
-            <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Settings View (Initially Hidden) -->
+    <div id="settings-view" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Settings</h2>
+      <div class="card bg-base-100 shadow-lg p-4">
+        <h3 class="text-lg font-semibold mb-2">Author Information</h3>
+        <form id="settings-form" class="grid grid-cols-1 gap-4">
+          <div>
+            <label for="author-name" class="label">Author Name</label>
+            <input type="text" id="author-name" class="input input-bordered w-full" placeholder="Enter your name" required />
           </div>
-          <div class="modal-body">
-              <div class="mb-3">
-                <label for="comment-text" class="form-label">Comment</label>
-                <textarea class="form-control" id="comment-text" rows="3" required></textarea>
-              </div>
-              <div class="mb-3">
-                <label for="comment-sentiment" class="form-label">Sentiment</label>
-                <select id="comment-sentiment" class="form-select">
-                  <option value="good" selected>Good (Green)</option>
-                  <option value="warning">Warning (Yellow)</option>
-                  <option value="bad">Bad (Red)</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="comment-category" class="form-label">Category</label>
-                <select id="comment-category" class="form-select">
-                  <option value="gameplay">Gameplay 🎮</option>
-                  <option value="crosshair">Crosshair Placement 🎯</option>
-                  <option value="movement">Movement 🏃</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="comment-timestamp" class="form-label">Timestamp</label>
-                <input type="text" id="comment-timestamp" class="form-control" readonly>
-              </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="save-comment-btn">Save Comment</button>
+          <div class="modal-action">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
           </div>
         </form>
       </div>
     </div>
-  </div>
 
-  <!-- File Input for Importing Comments -->
-  <input type="file" id="import-file-input" accept=".json" style="display: none;">
+    <!-- Comment Modal (DaisyUI Modal Implementation) -->
+    <input type="checkbox" id="commentModalToggle" class="modal-toggle" />
+    <div id="commentModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-box relative">
+        <!-- Close Button -->
+        <label for="commentModalToggle" class="btn btn-sm btn-circle absolute right-2 top-2" aria-label="Close modal">✕</label>
+        <h5 id="modal-title" class="font-bold text-lg mb-4">Add Comment</h5>
+        <form id="comment-form" class="grid grid-cols-1 gap-4">
+          <div>
+            <label for="comment-text" class="label">Comment</label>
+            <textarea id="comment-text" class="textarea textarea-bordered w-full focus:border-blue-500" rows="3" placeholder="Enter your feedback here..." required></textarea>
+            <p class="text-red-500 text-sm hidden" id="comment-error">Comment cannot be empty.</p>
+            <p class="text-gray-500 text-sm">Provide detailed feedback to help improve gameplay.</p>
+          </div>
+          <div>
+            <label for="comment-sentiment" class="label">Sentiment</label>
+            <select id="comment-sentiment" class="select select-bordered w-full" required>
+              <option value="good">Good</option>
+              <option value="warning">Warning</option>
+              <option value="bad">Bad</option>
+            </select>
+          </div>
+          <div>
+            <label for="comment-category" class="label">Category</label>
+            <select id="comment-category" class="select select-bordered w-full" required>
+              <option value="gameplay">Gameplay</option>
+              <option value="crosshair">Crosshair Placement</option>
+              <option value="movement">Movement</option>
+            </select>
+          </div>
+          <div class="modal-action">
+            <label for="commentModalToggle" class="btn">Cancel</label>
+            <button type="submit" class="btn btn-primary">Save Comment</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-  <!-- LZ-String Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <!-- YouTube Iframe API is loaded asynchronously above -->
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript -->
+    <script>
+      // Load YouTube Iframe API asynchronously
+      let tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
 
-  <!-- Custom JavaScript Code -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      'use strict';
+      document.addEventListener('DOMContentLoaded', function() {
+        'use strict';
 
-      let playerReady = false;
-      let player;
-      let currentVideoId = null;
-      let commentsData = {}; // { videoId: { authorName: [comments] } }
+        // Data Structures
+        let players = {}; // To hold multiple YT.Player instances
+        let currentVideoId = null; // For Home View
+        let commentsData = JSON.parse(localStorage.getItem('commentsData')) || {};
+        let loadedVideos = JSON.parse(localStorage.getItem('loadedVideos')) || [];
+        let authorName = localStorage.getItem('authorName') || '';
 
-      // Load data from localStorage
-      let loadedVideos = JSON.parse(localStorage.getItem('loadedVideos')) || [];
-      commentsData = JSON.parse(localStorage.getItem('commentsData')) || {};
+        // Elements
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const navHome = document.getElementById('nav-home');
+        const navVideoList = document.getElementById('nav-video-list');
+        const navTeamPov = document.getElementById('nav-team-pov');
+        const navSettings = document.getElementById('nav-settings');
+        const videoListView = document.getElementById('video-list-view');
+        const homeView = document.getElementById('home-view');
+        const teamPovView = document.getElementById('team-pov-view');
+        const settingsView = document.getElementById('settings-view');
+        const singleViewContainer = document.getElementById('single-view-videos');
+        const teamViewContainer = document.getElementById('team-view-videos');
+        const removeAllVideosListBtn = document.getElementById('remove-all-videos-list');
+        const startAllBtn = document.getElementById('start-all');
+        const pauseAllBtn = document.getElementById('pause-all');
+        const saveTeamSetupBtn = document.getElementById('save-team-setup');
+        const settingsForm = document.getElementById('settings-form');
+        const authorInput = document.getElementById('author-name');
 
-      // Initialize video list
-      function updateVideoList() {
-        const videoListElement = document.getElementById('video-list');
-        if (!videoListElement) {
-          console.error('Element with ID "video-list" not found.');
-          return;
-        }
-        videoListElement.innerHTML = '';
-        loadedVideos.forEach(video => {
-          const li = document.createElement('li');
-          li.classList.add('d-flex', 'align-items-center');
-          li.dataset.videoId = video.id;
-          li.innerHTML = `
-            <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail me-2">
-            <span>${video.title}</span>
-          `;
-          li.addEventListener('click', function() {
-            loadVideoById(video.id);
-            // Close the sidebar
-            const sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('sidebar'));
-            if (sidebar) sidebar.hide();
-          });
-          videoListElement.appendChild(li);
+        // Sidebar Toggle Functionality
+        toggleSidebarBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('open');
+          overlay.classList.toggle('active');
+          console.log('Sidebar toggled.');
         });
-      }
-      updateVideoList();
 
-      // Parse URL fragment for shared data
-      parseSharedDataFromURL();
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+          console.log('Sidebar closed via overlay.');
+        });
 
-      // Load New Video Button
-      const loadVideoButton = document.getElementById('load-video-btn');
-      loadVideoButton.addEventListener('click', function() {
-        const videoInput = prompt('Enter YouTube Video ID or URL:');
-        if (videoInput) {
-          const videoId = extractVideoId(videoInput);
-          if (videoId) {
-            fetchVideoDetails(videoId).then(videoDetails => {
-              // Check if video is already loaded
-              if (!loadedVideos.some(video => video.id === videoId)) {
-                loadedVideos.push(videoDetails);
-                localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
-                updateVideoList();
-              }
-              loadVideoById(videoId);
-            }).catch(error => {
-              alert('Failed to load video details. Please check the video ID or URL.');
-            });
-          } else {
-            alert('Invalid YouTube Video ID or URL.');
+        // Navigation Button Handlers
+        navHome.addEventListener('click', () => {
+          showView('home');
+          console.log('Switched to Home view.');
+        });
+
+        navVideoList.addEventListener('click', () => {
+          showView('video-list');
+          console.log('Switched to Video List view.');
+        });
+
+        navTeamPov.addEventListener('click', () => {
+          showView('team-pov');
+          console.log('Switched to Team POV view.');
+        });
+
+        navSettings.addEventListener('click', () => {
+          showView('settings');
+          console.log('Switched to Settings view.');
+        });
+
+        // Function to Show Specific View
+        function showView(view) {
+          homeView.classList.add('hidden');
+          videoListView.classList.add('hidden');
+          teamPovView.classList.add('hidden');
+          settingsView.classList.add('hidden');
+
+          if (view === 'home') {
+            homeView.classList.remove('hidden');
+          } else if (view === 'video-list') {
+            videoListView.classList.remove('hidden');
+            populateVideoList();
+          } else if (view === 'team-pov') {
+            teamPovView.classList.remove('hidden');
+            populateTeamPovList();
+          } else if (view === 'settings') {
+            settingsView.classList.remove('hidden');
+            authorInput.value = authorName;
           }
+
+          // Close Sidebar
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
         }
-      });
 
-      function extractVideoId(input) {
-        const regex = /(?:\?v=|\/embed\/|\.be\/|\/v\/|\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
-        const match = input.match(regex);
-        return match ? match[1] : input;
-      }
-
-      function fetchVideoDetails(videoId) {
-        return new Promise((resolve, reject) => {
-          fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
-            .then(response => response.json())
-            .then(data => {
-              if (data.error) {
-                reject(data.error);
-              } else {
-                const videoDetails = {
-                  id: videoId,
-                  title: data.title,
-                  thumbnail: data.thumbnail_url
-                };
-                resolve(videoDetails);
-              }
-            }).catch(error => {
-              reject(error);
-            });
-        });
-      }
-
-      function loadVideoById(videoId) {
-        currentVideoId = videoId;
-        const iframe = document.getElementById('video-player');
-        iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-        initPlayer();
-        updateActiveVideoInList(videoId);
-      }
-
-      function updateActiveVideoInList(videoId) {
-        const videoListElement = document.getElementById('video-list');
-        const videoItems = videoListElement.querySelectorAll('li');
-        videoItems.forEach(item => {
-          if (item.dataset.videoId === videoId) {
-            item.classList.add('active');
-          } else {
-            item.classList.remove('active');
+        // Remove All Videos from Video List View
+        removeAllVideosListBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to remove all videos? This action cannot be undone.')) {
+            localStorage.removeItem('loadedVideos');
+            localStorage.removeItem('commentsData');
+            localStorage.removeItem('authorName');
+            loadedVideos = [];
+            commentsData = {};
+            authorName = '';
+            currentVideoId = null;
+            updateUIAfterRemoval();
+            showToast('All videos and comments have been removed.', 'success');
+            console.log('All videos and comments removed from Video List view.');
           }
         });
-      }
 
-      function initPlayer() {
-        if (typeof YT !== 'undefined' && YT && YT.Player) {
-          player = new YT.Player('video-player', {
-            events: {
-              'onReady': onPlayerReady,
-              'onStateChange': onPlayerStateChange
+        // Event Listener for Save Team Setup Button
+        if (saveTeamSetupBtn) {
+          saveTeamSetupBtn.addEventListener('click', () => {
+            const teamVideoIds = getCurrentTeamVideoIds();
+            if (teamVideoIds.length === 0) {
+              showToast('No videos loaded in Team POV slots.', 'error');
+              console.warn('Attempted to save empty team setup.');
+              return;
             }
+
+            const setupId = saveTeamSetup(teamVideoIds);
+            showToast('Team setup saved successfully!', 'success');
+            console.log(`Team setup ${setupId} saved.`);
           });
-        } else {
-          // Load the YouTube API script dynamically
-          var tag = document.createElement('script');
-          tag.src = "https://www.youtube.com/iframe_api";
-          var firstScriptTag = document.getElementsByTagName('script')[0];
-          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-          window.onYouTubeIframeAPIReady = function() {
-            player = new YT.Player('video-player', {
-              events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
+        }
+
+        // Function to Get Current Team Video IDs
+        function getCurrentTeamVideoIds() {
+          const teamVideoIds = [];
+          for (let i = 1; i <= 12; i++) {
+            const playerIdentifier = `team-player${i}`;
+            if (players[playerIdentifier] && players[playerIdentifier].getVideoData().video_id) {
+              teamVideoIds.push(players[playerIdentifier].getVideoData().video_id);
+            }
+          }
+          return teamVideoIds;
+        }
+
+        // Function to Generate Unique Identifier for Team Setup
+        function generateTeamSetupId(videoIds) {
+          return videoIds.sort().join('-');
+        }
+
+        // Function to Save Team Setup
+        function saveTeamSetup(videoIds) {
+          const setupId = generateTeamSetupId(videoIds);
+          localStorage.setItem(`teamSetup-${setupId}`, JSON.stringify(videoIds));
+          return setupId;
+        }
+
+        // Function to Load Team Setup
+        function loadTeamSetup(setupId) {
+          const videoIds = JSON.parse(localStorage.getItem(`teamSetup-${setupId}`));
+          if (videoIds) {
+            clearAllPlayers(); // Clear existing Team POV players
+            videoIds.forEach((videoId, index) => {
+              if (index < 12) { // Ensure we don't exceed 12 slots
+                loadVideoIntoSlot(index + 1, videoId);
               }
             });
-          };
+            loadCommentsForTeamSetup(setupId);
+            showToast('Team setup loaded successfully!', 'success');
+            console.log(`Team setup ${setupId} loaded.`);
+          } else {
+            showToast('Team setup not found.', 'error');
+            console.error('Team setup not found.');
+          }
         }
-      }
 
-      function onPlayerReady(event) {
-        playerReady = true;
-        // Load comments for the current video
-        if (currentVideoId) {
-          loadCommentsForVideo(currentVideoId);
+        // Function to Load Comments for Team Setup
+        function loadCommentsForTeamSetup(setupId) {
+          const commentFeed = document.getElementById('comment-feed-team');
+          if (!commentFeed) {
+            console.error('Comment feed for Team POV not found.');
+            return;
+          }
+          commentFeed.innerHTML = '';
+
+          if (commentsData[setupId]) {
+            commentsData[setupId].forEach(comment => {
+              addCommentToFeed(comment, 'team-pov');
+            });
+            console.log(`Loaded ${commentsData[setupId].length} comments for team setup ${setupId}.`);
+          } else {
+            console.log('No comments found for this team setup.');
+          }
         }
-      }
 
-      function onPlayerStateChange(event) {
-        // Handle player state changes if needed
-      }
-
-      // Parse shared data from URL fragment
-      function parseSharedDataFromURL() {
-        const hash = window.location.hash.substring(1);
-        if (hash) {
+        // Function to Create YouTube Player
+        function createPlayer(playerIdentifier, videoId) {
+          console.log(`Creating YouTube player for ${playerIdentifier} with Video ID: ${videoId}`);
           try {
-            const decodedData = LZString.decompressFromEncodedURIComponent(hash);
-            if (decodedData) {
-              const sharedData = JSON.parse(decodedData);
-              const videoId = sharedData.videoId;
-              const authorName = sharedData.author;
-              const importedComments = sharedData.comments;
+            players[playerIdentifier] = new YT.Player(playerIdentifier, {
+              height: '180',
+              width: '320',
+              videoId: videoId,
+              events: {
+                'onReady': () => onPlayerReady(playerIdentifier),
+                'onStateChange': () => onPlayerStateChange(playerIdentifier)
+              },
+              playerVars: {
+                'rel': 0,
+                'showinfo': 0,
+                'modestbranding': 1
+              }
+            });
+          } catch (error) {
+            console.error(`Error creating YouTube player ${playerIdentifier}:`, error);
+            showToast(`Failed to initialize video player ${playerIdentifier}.`, 'error');
+          }
+        }
 
-              // Add video to loadedVideos if not already present
-              if (!loadedVideos.some(video => video.id === videoId)) {
-                fetchVideoDetails(videoId).then(videoDetails => {
+        // Function to Load Video into Home View
+        function loadVideoById(videoId, title = 'Untitled Video') {
+          console.log(`Loading Video ID: ${videoId} with title: ${title} into Home View.`);
+          try {
+            if (players['player-home'] && typeof players['player-home'].loadVideoById === 'function') {
+              players['player-home'].loadVideoById(videoId);
+            } else {
+              // Create Home Player if not exists
+              players['player-home'] = new YT.Player('player-home', {
+                height: '390',
+                width: '640',
+                videoId: videoId,
+                events: {
+                  'onReady': onHomePlayerReady,
+                  'onStateChange': onHomePlayerStateChange
+                },
+                playerVars: {
+                  'rel': 0,
+                  'showinfo': 0,
+                  'modestbranding': 1
+                }
+              });
+            }
+            currentVideoId = videoId;
+            loadCommentsForVideo(videoId, 'home');
+            showToast(`Loaded video: ${title}`, 'success');
+            console.log(`Loaded video: ${title} into Home View.`);
+          } catch (error) {
+            console.error('Error loading video by ID into Home View:', error);
+            showToast('Failed to load video.', 'error');
+          }
+        }
+
+        // Home Player Ready Handler
+        function onHomePlayerReady() {
+          console.log('Home YouTube player is ready.');
+        }
+
+        // Home Player State Change Handler
+        function onHomePlayerStateChange(event) {
+          if (event.data === YT.PlayerState.PLAYING) {
+            console.log('Home video started playing.');
+            // Implement any additional logic if needed
+          } else {
+            console.log('Home video state changed:', event.data);
+          }
+        }
+
+        // Function to Load Video into Specific Team POV Slot
+        function loadVideoIntoSlot(playerNumber, videoId) {
+          console.log(`Loading Video ID: ${videoId} into Slot ${playerNumber}.`);
+          try {
+            const playerIdentifier = `team-player${playerNumber}`;
+            if (players[playerIdentifier] && typeof players[playerIdentifier].loadVideoById === 'function') {
+              players[playerIdentifier].loadVideoById(videoId);
+              console.log(`Loaded video ID: ${videoId} into existing Slot ${playerNumber}.`);
+            } else {
+              createPlayer(playerIdentifier, videoId);
+            }
+
+            // Add to loadedVideos if not already present
+            const videoExists = loadedVideos.some(v => v.id === videoId);
+            if (!videoExists) {
+              // Fetch video details to get title and thumbnail
+              fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`)
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`YouTube oEmbed fetch failed with status ${response.status}`);
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  const videoDetails = {
+                    id: videoId,
+                    title: data.title,
+                    thumbnail: data.thumbnail_url,
+                    teamView: true
+                  };
                   loadedVideos.push(videoDetails);
                   localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
-                  updateVideoList();
-                  // Replace comments from the same author
-                  replaceComments(sharedData);
-                  loadVideoById(videoId);
-                }).catch(error => {
-                  alert('Failed to load video details from shared URL.');
+                  populateVideoList();
+                  showToast(`Loaded video: ${data.title}`, 'success');
+                  console.log(`Loaded video: ${data.title} into Slot ${playerNumber}.`);
+                })
+                .catch(error => {
+                  console.error('Error fetching video details:', error);
+                  showToast('Failed to load video details.', 'error');
                 });
-              } else {
-                // Replace comments from the same author
-                replaceComments(sharedData);
-                loadVideoById(videoId);
-              }
-
-              // Clear the URL fragment after processing
-              history.replaceState(null, '', window.location.pathname);
+            } else {
+              showToast('Video already loaded.', 'info');
+              console.log('Video already exists in loadedVideos.');
             }
           } catch (error) {
-            console.error('Error parsing shared data from URL:', error);
+            console.error(`Error loading video into Slot ${playerNumber}:`, error);
+            showToast(`Failed to load video into Slot ${playerNumber}.`, 'error');
           }
         }
-      }
 
-      // Save Comment Button in Modal
-      const saveCommentButton = document.getElementById('save-comment-btn');
-      saveCommentButton.addEventListener('click', function(event) {
-        event.preventDefault();
-        if (!currentVideoId) {
-          alert('No video loaded.');
-          return;
+        // Function to Add Video Slot in Team POV
+        function addVideoSlot(slotNumber) {
+          const slotDiv = document.createElement('div');
+          slotDiv.classList.add('card', 'bg-base-100', 'shadow-lg', 'p-4');
+          slotDiv.innerHTML = `
+            <div id="team-player${slotNumber}"></div>
+            <button class="btn btn-secondary mt-2 w-full load-video-btn" data-player="${slotNumber}">Load Video into Slot ${slotNumber}</button>
+          `;
+          document.getElementById('team-video-grid').appendChild(slotDiv);
+          console.log(`Added Slot ${slotNumber} to Team POV.`);
         }
 
-        const authorNameInput = document.getElementById('author-name');
-        const authorName = authorNameInput.value.trim() || 'Anonymous';
+        // Function to Populate Team POV Video Grid
+        function populateTeamPovList() {
+          const teamVideoGrid = document.getElementById('team-video-grid');
+          teamVideoGrid.innerHTML = '';
 
-        const commentText = document.getElementById('comment-text').value;
-        const commentSentiment = document.getElementById('comment-sentiment').value;
-        const commentCategory = document.getElementById('comment-category').value;
-        const commentTimestamp = document.getElementById('comment-timestamp').value;
-
-        // Create comment object
-        const comment = {
-          text: commentText,
-          sentiment: commentSentiment,
-          category: commentCategory,
-          timestamp: commentTimestamp,
-          author: authorName
-        };
-
-        // Save comment to commentsData
-        if (!commentsData[currentVideoId]) {
-          commentsData[currentVideoId] = {};
-        }
-        if (!commentsData[currentVideoId][authorName]) {
-          commentsData[currentVideoId][authorName] = [];
-        }
-        commentsData[currentVideoId][authorName].push(comment);
-        localStorage.setItem('commentsData', JSON.stringify(commentsData));
-
-        // Add comment to UI
-        addCommentToFeed(comment);
-
-        // Add marker to timeline
-        addTimelineMarker(comment.timestamp);
-
-        const commentModal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
-        commentModal.hide();
-        document.getElementById('comment-form').reset();
-      });
-
-      function addCommentToFeed(comment) {
-        const commentFeed = document.getElementById('comment-feed');
-
-        // Create comment card
-        const commentItem = document.createElement('div');
-        commentItem.classList.add('list-group-item', 'comment-item', `sentiment-${comment.sentiment}`);
-
-        // Get emoji based on category
-        const categoryEmojis = {
-          'gameplay': '🎮',
-          'crosshair': '🎯',
-          'movement': '🏃'
-        };
-        const emoji = categoryEmojis[comment.category] || '';
-
-        commentItem.innerHTML = `
-          <div class="comment-emoji">${emoji}</div>
-          <div class="comment-delete" title="Delete Comment">&times;</div>
-          <div style="margin-left: 0;">
-            <strong>${capitalizeFirstLetter(comment.category)}</strong> [${comment.timestamp}]<br>
-            <em>By ${comment.author}</em><br>
-            ${comment.text}
-          </div>
-        `;
-
-        // Delete comment functionality
-        const deleteButton = commentItem.querySelector('.comment-delete');
-        deleteButton.addEventListener('click', function(e) {
-          e.stopPropagation(); // Prevent triggering the comment click event
-          if (confirm('Are you sure you want to delete this comment?')) {
-            deleteComment(comment);
-            commentItem.remove();
-            // Update localStorage
-            localStorage.setItem('commentsData', JSON.stringify(commentsData));
-            // Reload comments and timeline markers
-            if (playerReady) {
-              loadCommentsForVideo(currentVideoId);
-            }
+          // Allow up to 12 video slots
+          for (let i = 1; i <= 12; i++) {
+            addVideoSlot(i);
           }
+        }
+
+        // Function to Add Comments to the Feed
+        function addCommentToFeed(comment, view = 'home') {
+          console.log('Adding comment to feed:', comment);
+          const chatBubble = document.createElement('div');
+          chatBubble.classList.add('chat', 'chat-end');
+
+          // Map sentiment to DaisyUI chat-bubble color classes
+          const bubbleClass = {
+            good: 'chat-bubble chat-bubble-success',
+            warning: 'chat-bubble chat-bubble-warning',
+            bad: 'chat-bubble chat-bubble-error'
+          }[comment.sentiment] || 'chat-bubble chat-bubble-primary';
+
+          chatBubble.innerHTML = `
+            <div class="${bubbleClass}">
+              <strong>${capitalizeFirstLetter(comment.category)}</strong> [${comment.timestamp}]<br>
+              <em>By ${comment.author}</em><br>
+              ${comment.text}
+            </div>
+          `;
+
+          if (view === 'home') {
+            document.getElementById('comment-feed-home').appendChild(chatBubble);
+          } else if (view === 'team-pov') {
+            document.getElementById('comment-feed-team').appendChild(chatBubble);
+          }
+          console.log('Comment added to feed.');
+        }
+
+        // Function to Load Comments for a Given Video ID
+        function loadCommentsForVideo(videoId, view = 'home') {
+          console.log(`Loading comments for Video ID: ${videoId} in ${view} view.`);
+          let commentFeed;
+          if (view === 'home') {
+            commentFeed = document.getElementById('comment-feed-home');
+            commentFeed.innerHTML = '';
+          } else if (view === 'team-pov') {
+            commentFeed = document.getElementById('comment-feed-team');
+            commentFeed.innerHTML = '';
+          }
+
+          if (commentsData[videoId]) {
+            commentsData[videoId].forEach(comment => {
+              addCommentToFeed(comment, view);
+            });
+            console.log(`Loaded ${commentsData[videoId].length} comments.`);
+          } else {
+            console.log('No comments found for this video.');
+          }
+        }
+
+        // Comment Form Handling
+        document.getElementById('comment-form').addEventListener('submit', function(event) {
+          event.preventDefault();
+          console.log('Comment form submitted.');
+
+          if (!authorName) {
+            promptForAuthorName();
+            // After setting the author name, prevent comment submission until name is set
+            showToast('Please set your author name in Settings.', 'error');
+            console.warn('Author name not set.');
+            return;
+          }
+
+          if (!currentVideoId) {
+            showToast('Please load a video first', 'error');
+            console.error('Attempted to add comment without loading a video.');
+            return;
+          }
+
+          const commentText = document.getElementById('comment-text').value.trim();
+          if (!commentText) {
+            document.getElementById('comment-error').classList.remove('hidden');
+            console.warn('Empty comment submission attempted.');
+            return;
+          } else {
+            document.getElementById('comment-error').classList.add('hidden');
+          }
+
+          const comment = {
+            text: commentText,
+            sentiment: document.getElementById('comment-sentiment').value,
+            category: document.getElementById('comment-category').value,
+            timestamp: formatTime(players['player-home'].getCurrentTime()),
+            author: authorName
+          };
+
+          if (!commentsData[currentVideoId]) {
+            commentsData[currentVideoId] = [];
+          }
+
+          commentsData[currentVideoId].push(comment);
+          localStorage.setItem('commentsData', JSON.stringify(commentsData));
+          console.log('New comment saved:', comment);
+
+          addCommentToFeed(comment, 'home');
+
+          // Close the modal by unchecking the checkbox
+          document.getElementById('commentModalToggle').checked = false;
+          console.log('Comment modal closed.');
+
+          showToast('Comment saved successfully!', 'success');
+          event.target.reset();
+          console.log('Comment form reset.');
         });
 
-        commentItem.addEventListener('click', function() {
-          if (player && playerReady) {
-            const timeInSeconds = parseTime(comment.timestamp);
-            player.seekTo(timeInSeconds, true);
-          }
-        });
-
-        commentFeed.appendChild(commentItem);
-      }
-
-      function deleteComment(commentToDelete) {
-        const authorComments = commentsData[currentVideoId][commentToDelete.author];
-        const index = authorComments.findIndex(comment => {
-          return comment.text === commentToDelete.text &&
-                 comment.timestamp === commentToDelete.timestamp &&
-                 comment.category === commentToDelete.category &&
-                 comment.sentiment === commentToDelete.sentiment;
-        });
-        if (index !== -1) {
-          authorComments.splice(index, 1);
-          // If no comments left for the author, remove the author key
-          if (authorComments.length === 0) {
-            delete commentsData[currentVideoId][commentToDelete.author];
-            // If no authors left for the video, remove the video key
-            if (Object.keys(commentsData[currentVideoId]).length === 0) {
-              delete commentsData[currentVideoId];
-            }
-          }
-        }
-      }
-
-      function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-      }
-
-      function addTimelineMarker(timestamp) {
-        const timeInSeconds = parseTime(timestamp);
-        if (player && player.getDuration && player.getDuration() > 0) {
-          const videoDuration = player.getDuration();
-          const timeline = document.getElementById('timeline');
-          const markerPosition = (timeInSeconds / videoDuration) * 100;
-
-          const marker = document.createElement('div');
-          marker.classList.add('timeline-marker');
-          marker.style.left = `${markerPosition}%`;
-
-          marker.addEventListener('click', function() {
-            if (player && playerReady) {
-              player.seekTo(timeInSeconds, true);
-            }
-          });
-
-          timeline.appendChild(marker);
-        } else {
-          // Wait and try again if duration is not yet available
-          setTimeout(() => addTimelineMarker(timestamp), 100);
-        }
-      }
-
-      function loadCommentsForVideo(videoId) {
-        const commentFeed = document.getElementById('comment-feed');
-        commentFeed.innerHTML = '';
-        const timeline = document.getElementById('timeline');
-        timeline.innerHTML = '';
-
-        if (commentsData[videoId]) {
-          for (let author in commentsData[videoId]) {
-            // Ensure that commentsData[videoId][author] is an array
-            const authorComments = commentsData[videoId][author];
-            if (Array.isArray(authorComments)) {
-              authorComments.forEach(comment => {
-                addCommentToFeed(comment);
-                addTimelineMarker(comment.timestamp);
-              });
-            } else {
-              console.error(`Comments for author ${author} are not an array:`, authorComments);
-            }
-          }
-        }
-      }
-
-      // Update Timestamp when Modal Opens
-      const commentModalElement = document.getElementById('commentModal');
-      commentModalElement.addEventListener('show.bs.modal', function () {
-        const commentTimestampInput = document.getElementById('comment-timestamp');
-        if (player && typeof player.getCurrentTime === 'function') {
-          const currentTime = player.getCurrentTime();
-          commentTimestampInput.value = formatTime(currentTime);
-        } else {
-          alert('Please load a video before adding comments.');
-          const commentModal = bootstrap.Modal.getInstance(commentModalElement);
-          commentModal.hide();
-        }
-      });
-
-      function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-      }
-
-      function parseTime(timeString) {
-        const parts = timeString.split(':');
-        let seconds = 0;
-        for (let i = 0; i < parts.length; i++) {
-          seconds = seconds * 60 + parseInt(parts[i], 10);
-        }
-        return seconds;
-      }
-
-      // Previous and Next Comment Buttons
-      const prevCommentButton = document.getElementById('prev-comment');
-      const nextCommentButton = document.getElementById('next-comment');
-
-      prevCommentButton.addEventListener('click', function() {
-        navigateComments(-1);
-      });
-
-      nextCommentButton.addEventListener('click', function() {
-        navigateComments(1);
-      });
-
-      function navigateComments(direction) {
-        let allComments = [];
-        if (commentsData[currentVideoId]) {
-          for (let author in commentsData[currentVideoId]) {
-            const authorComments = commentsData[currentVideoId][author];
-            if (Array.isArray(authorComments)) {
-              allComments = allComments.concat(authorComments);
-            } else {
-              console.error(`Comments for author ${author} are not an array:`, authorComments);
-            }
-          }
-        }
-
-        if (allComments.length === 0 || !playerReady) return;
-
-        const currentTime = player.getCurrentTime();
-        const sortedComments = allComments.map(comment => {
-          return { comment, time: parseTime(comment.timestamp) };
-        }).sort((a, b) => a.time - b.time);
-
-        let targetComment;
-        if (direction === 1) {
-          // Next comment
-          targetComment = sortedComments.find(c => c.time > currentTime);
-        } else {
-          // Previous comment
-          for (let i = sortedComments.length - 1; i >= 0; i--) {
-            if (sortedComments[i].time < currentTime) {
-              targetComment = sortedComments[i];
+        // Function to Prompt for Author Name
+        function promptForAuthorName() {
+          let name = '';
+          while (!name) {
+            name = prompt('Please enter your name:', '');
+            if (name === null) { // User pressed cancel
+              name = 'Anonymous';
               break;
             }
+            name = name.trim();
+          }
+          authorName = name || 'Anonymous';
+          localStorage.setItem('authorName', authorName);
+          showToast(`Author set to: ${authorName}`, 'success');
+          console.log('Author name set:', authorName);
+        }
+
+        // Function to Populate Video List in Video List View
+        function populateVideoList() {
+          // Separate Single View and Team View videos
+          const singleViewVideos = loadedVideos.filter(v => !v.teamView);
+          const teamViewVideos = loadedVideos.filter(v => v.teamView);
+
+          // Populate Single View Videos
+          singleViewContainer.innerHTML = '';
+          if (singleViewVideos.length === 0) {
+            singleViewContainer.innerHTML = '<p class="text-center text-gray-500">No single view videos loaded.</p>';
+          } else {
+            singleViewVideos.forEach(video => {
+              const videoItem = document.createElement('div');
+              videoItem.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'border', 'rounded-lg', 'hover:bg-gray-100');
+
+              videoItem.innerHTML = `
+                <div class="flex items-center space-x-4">
+                  <img src="${video.thumbnail}" alt="${video.title}" class="w-16 h-9 object-cover rounded">
+                  <div>
+                    <h3 class="font-semibold">${video.title}</h3>
+                    <p class="text-sm text-gray-500">ID: ${video.id}</p>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button class="btn btn-primary btn-sm goto-video-btn" data-video-id="${video.id}">Go To</button>
+                  <button class="btn btn-error btn-sm remove-video-btn" data-video-id="${video.id}" data-video-title="${video.title}">
+                    Remove
+                  </button>
+                </div>
+              `;
+
+              singleViewContainer.appendChild(videoItem);
+            });
+          }
+
+          // Populate Team View Videos
+          teamViewVideos.forEach(video => {
+            const videoItem = document.createElement('div');
+            videoItem.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'border', 'rounded-lg', 'hover:bg-gray-100');
+
+            videoItem.innerHTML = `
+              <div class="flex items-center space-x-4">
+                <img src="${video.thumbnail}" alt="${video.title}" class="w-16 h-9 object-cover rounded">
+                <div>
+                  <h3 class="font-semibold">${video.title}</h3>
+                  <p class="text-sm text-gray-500">ID: ${video.id}</p>
+                </div>
+              </div>
+              <div class="flex space-x-2">
+                <button class="btn btn-primary btn-sm goto-video-btn" data-video-id="${video.id}">Go To</button>
+                <button class="btn btn-error btn-sm remove-video-btn" data-video-id="${video.id}" data-video-title="${video.title}">
+                  Remove
+                </button>
+              </div>
+            `;
+
+            teamViewContainer.appendChild(videoItem);
+          });
+
+          // Add event listeners to all remove buttons
+          document.querySelectorAll('.remove-video-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const videoId = button.getAttribute('data-video-id');
+              const videoTitle = button.getAttribute('data-video-title');
+              if (confirm(`Are you sure you want to remove "${videoTitle}"?`)) {
+                removeVideo(videoId);
+              }
+            });
+          });
+
+          // Add event listeners to all Go To buttons
+          document.querySelectorAll('.goto-video-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const videoId = button.getAttribute('data-video-id');
+              gotoVideo(videoId);
+            });
+          });
+
+          console.log('Video list populated.');
+        }
+
+        // Function to Remove a Single Video
+        function removeVideo(videoId) {
+          // Remove from loadedVideos
+          loadedVideos = loadedVideos.filter(v => v.id !== videoId);
+          localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+
+          // Remove associated comments
+          if (commentsData[videoId]) {
+            delete commentsData[videoId];
+            localStorage.setItem('commentsData', JSON.stringify(commentsData));
+          }
+
+          // Remove from Team POV players if loaded
+          for (let i = 1; i <= 12; i++) {
+            const playerIdentifier = `team-player${i}`;
+            if (players[playerIdentifier] && players[playerIdentifier].getVideoData().video_id === videoId) {
+              players[playerIdentifier].stopVideo();
+              players[playerIdentifier].destroy();
+              delete players[playerIdentifier];
+              document.getElementById(playerIdentifier).innerHTML = '';
+              console.log(`Video removed from Slot ${i}.`);
+            }
+          }
+
+          // If the removed video is currently playing in Home View, load another video
+          if (currentVideoId === videoId) {
+            const firstSingleViewVideo = loadedVideos.find(v => !v.teamView);
+            if (firstSingleViewVideo) {
+              loadVideoById(firstSingleViewVideo.id, firstSingleViewVideo.title);
+            } else {
+              // No videos left, clear player
+              if (players['player-home'] && typeof players['player-home'].destroy === 'function') {
+                players['player-home'].destroy();
+                delete players['player-home'];
+                currentVideoId = null;
+                document.getElementById('player-home').innerHTML = '';
+                document.getElementById('comment-feed-home').innerHTML = '';
+                showToast('No videos loaded. Please add a new video.', 'info');
+                console.log('No videos left to play in Home View.');
+              }
+            }
+          }
+
+          // Update UI
+          populateVideoList();
+          showToast('Video removed successfully.', 'success');
+          console.log(`Video with ID ${videoId} removed.`);
+        }
+
+        // Function to Clear All Team POV Players
+        function clearAllPlayers() {
+          for (let i = 1; i <= 12; i++) {
+            const playerIdentifier = `team-player${i}`;
+            if (players[playerIdentifier] && typeof players[playerIdentifier].destroy === 'function') {
+              players[playerIdentifier].destroy();
+              delete players[playerIdentifier];
+              document.getElementById(playerIdentifier).innerHTML = '';
+              console.log(`Cleared Slot ${i}.`);
+            }
           }
         }
 
-        if (targetComment) {
-          player.seekTo(targetComment.time, true);
-        }
-      }
+        // Function to Navigate to a Specific Video
+        function gotoVideo(videoId) {
+          console.log(`Navigating to video ID: ${videoId}.`);
+          // Find the video details
+          const video = loadedVideos.find(v => v.id === videoId);
+          if (!video) {
+            showToast('Video not found.', 'error');
+            console.error('Video not found in loadedVideos.');
+            return;
+          }
 
-      // Export Comments Functionality (Generate Shareable URL)
-      const exportCommentsButton = document.getElementById('export-comments');
-      exportCommentsButton.addEventListener('click', function() {
-        if (!currentVideoId) {
-          alert('No video loaded.');
-          return;
-        }
-
-        const authorNameInput = document.getElementById('author-name');
-        const authorName = authorNameInput.value.trim() || 'Anonymous';
-
-        if (!commentsData[currentVideoId] || !commentsData[currentVideoId][authorName] || !Array.isArray(commentsData[currentVideoId][authorName]) || commentsData[currentVideoId][authorName].length === 0) {
-          alert(`No comments to share for this video by ${authorName}.`);
-          return;
+          // Load into Home View
+          loadVideoById(videoId, video.title);
+          // Switch to Home View
+          showView('home');
+          console.log('Switched to Home view after Go To.');
         }
 
-        // Prepare data for sharing
-        const dataToShare = {
-          videoId: currentVideoId,
-          author: authorName,
-          comments: commentsData[currentVideoId][authorName]
-        };
-        const dataStr = JSON.stringify(dataToShare);
-        const compressedData = LZString.compressToEncodedURIComponent(dataStr);
+        // Function to Show Toast Notifications
+        function showToast(message, type = 'success') {
+          console.log(`Showing toast: ${message} | Type: ${type}`);
+          const toastContainer = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+          toast.className = `alert ${type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-error' : 'alert-info')} shadow-lg`;
+          toast.innerHTML = `
+            <div>
+              <span>${message}</span>
+              <button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove()" aria-label="Close toast">&times;</button>
+            </div>
+          `;
+          toastContainer.appendChild(toast);
+          console.log('Toast added to container.');
 
-        // Check URL length
-        if (compressedData.length > 1800) {
-          alert('Comments data is too large to share via URL. Please use the export/import feature.');
-          return;
+          setTimeout(() => {
+            toast.remove();
+            console.log('Toast removed after timeout.');
+          }, 3000);
         }
 
-        // Generate shareable URL
-        const baseUrl = window.location.origin + window.location.pathname;
-        const shareUrl = `${baseUrl}#${compressedData}`;
-
-        // Copy URL to clipboard and notify user
-        copyToClipboard(shareUrl);
-        alert('Shareable URL has been copied to your clipboard.');
-      });
-
-      function copyToClipboard(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        try {
-          document.execCommand('copy');
-        } catch (err) {
-          console.error('Failed to copy text to clipboard:', err);
-        }
-        document.body.removeChild(textarea);
-      }
-
-      // Export Comments to File Functionality
-      const exportCommentsFileButton = document.getElementById('export-comments-file');
-      exportCommentsFileButton.addEventListener('click', function() {
-        if (!currentVideoId) {
-          alert('No video loaded.');
-          return;
+        // Function to Capitalize First Letter of a String
+        function capitalizeFirstLetter(string) {
+          if (!string) return '';
+          return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        const authorNameInput = document.getElementById('author-name');
-        const authorName = authorNameInput.value.trim() || 'Anonymous';
-
-        if (!commentsData[currentVideoId] || !commentsData[currentVideoId][authorName] || !Array.isArray(commentsData[currentVideoId][authorName]) || commentsData[currentVideoId][authorName].length === 0) {
-          alert(`No comments to export for this video by ${authorName}.`);
-          return;
+        // Function to Format Seconds to "MM:SS" Format
+        function formatTime(seconds) {
+          const minutes = Math.floor(seconds / 60);
+          const remainingSeconds = Math.floor(seconds % 60);
+          const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+          console.log(`Formatted ${seconds} seconds to "${formattedTime}"`);
+          return formattedTime;
         }
 
-        // Prepare data for export
-        const dataToExport = {
-          videoId: currentVideoId,
-          author: authorName,
-          comments: commentsData[currentVideoId][authorName]
-        };
+        // Function to Update UI After Removing All Videos
+        function updateUIAfterRemoval() {
+          // Clear Home Player
+          if (players['player-home'] && typeof players['player-home'].destroy === 'function') {
+            players['player-home'].destroy();
+            delete players['player-home'];
+            document.getElementById('player-home').innerHTML = '';
+            document.getElementById('comment-feed-home').innerHTML = '';
+            currentVideoId = null;
+          }
 
-        const dataStr = JSON.stringify(dataToExport, null, 2); // Pretty print with indentation
+          // Clear Team POV Players
+          clearAllPlayers();
 
-        // Create a Blob and trigger a download
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `comments_${currentVideoId}_${authorName}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
+          // Update Video List
+          populateVideoList();
 
-      // Import Comments Functionality
-      const importCommentsButton = document.getElementById('import-comments-btn');
-      const importFileInput = document.getElementById('import-file-input');
+          // Switch to Home View
+          showView('home');
+        }
 
-      importCommentsButton.addEventListener('click', function() {
-        importFileInput.click();
-      });
+        // Function to Add Comment to Team Setup
+        function addCommentToTeamSetup(setupId, comment) {
+          if (!commentsData[setupId]) {
+            commentsData[setupId] = [];
+          }
+          commentsData[setupId].push(comment);
+          localStorage.setItem('commentsData', JSON.stringify(commentsData));
+          showToast('Comment added to team setup.', 'success');
+          console.log('Comment added to team setup:', comment);
+        }
 
-      importFileInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            try {
-              const importedData = JSON.parse(e.target.result);
-              if (importedData.videoId && importedData.comments && importedData.author) {
-                const videoId = importedData.videoId;
-                const authorName = importedData.author;
+        // YouTube Iframe API Ready Callback
+        window.onYouTubeIframeAPIReady = function() {
+          console.log('YouTube Iframe API is ready.');
+          initializeApp();
+        }
 
-                // Ensure importedComments is an array
-                if (!Array.isArray(importedData.comments)) {
-                  alert('Invalid comments format in the imported file.');
-                  return;
-                }
+        // Function to Initialize the Application
+        function initializeApp() {
+          // Load Author Name if Exists
+          if (!authorName) {
+            promptForAuthorName();
+          }
 
-                // Add video to loadedVideos if not already present
-                if (!loadedVideos.some(video => video.id === videoId)) {
-                  fetchVideoDetails(videoId).then(videoDetails => {
-                    loadedVideos.push(videoDetails);
-                    localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
-                    updateVideoList();
-                    // Replace comments from the same author
-                    replaceComments(importedData);
-                    loadVideoById(videoId);
-                  }).catch(error => {
-                    alert('Failed to load video details. Please check the video ID.');
-                  });
-                } else {
-                  // Replace comments from the same author
-                  replaceComments(importedData);
-                  loadVideoById(videoId);
-                }
-              } else {
-                alert('Invalid comments file.');
-              }
-            } catch (error) {
-              alert('Error parsing the comments file.');
+          if (loadedVideos.length === 0) {
+            // If no videos are loaded, load the default video
+            const defaultVideoId = 'TKM4IfADlPk'; // Video ID for https://www.youtube.com/watch?v=TKM4IfADlPk
+            const defaultVideo = {
+              id: defaultVideoId,
+              title: 'Default Video',
+              thumbnail: 'https://img.youtube.com/vi/TKM4IfADlPk/mqdefault.jpg',
+              teamView: false
+            };
+            loadedVideos.push(defaultVideo);
+            localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+            loadVideoById(defaultVideoId, defaultVideo.title);
+            showToast('Default video loaded.', 'success');
+            console.log('Default video loaded.');
+          } else {
+            // Optionally, load the first video in the list
+            const firstVideo = loadedVideos.find(v => !v.teamView);
+            if (firstVideo) {
+              loadVideoById(firstVideo.id, firstVideo.title);
+              console.log('Loaded first single view video.');
             }
-          };
-          reader.readAsText(file);
+          }
         }
-        // Reset the file input
-        importFileInput.value = '';
+
+        // Function to Prompt for Author Name
+        function promptForAuthorName() {
+          let name = '';
+          while (!name) {
+            name = prompt('Please enter your name:', '');
+            if (name === null) { // User pressed cancel
+              name = 'Anonymous';
+              break;
+            }
+            name = name.trim();
+          }
+          authorName = name || 'Anonymous';
+          localStorage.setItem('authorName', authorName);
+          showToast(`Author set to: ${authorName}`, 'success');
+          console.log('Author name set:', authorName);
+        }
+
+        // Function to Add Video Slot in Team POV
+        function addVideoSlot(slotNumber) {
+          const slotDiv = document.createElement('div');
+          slotDiv.classList.add('card', 'bg-base-100', 'shadow-lg', 'p-4');
+          slotDiv.innerHTML = `
+            <div id="team-player${slotNumber}"></div>
+            <button class="btn btn-secondary mt-2 w-full load-video-btn" data-player="${slotNumber}">Load Video into Slot ${slotNumber}</button>
+          `;
+          document.getElementById('team-video-grid').appendChild(slotDiv);
+          console.log(`Added Slot ${slotNumber} to Team POV.`);
+        }
+
+        // Function to Populate Team POV Video Grid
+        function populateTeamPovList() {
+          const teamVideoGrid = document.getElementById('team-video-grid');
+          teamVideoGrid.innerHTML = '';
+
+          // Allow up to 12 video slots
+          for (let i = 1; i <= 12; i++) {
+            addVideoSlot(i);
+          }
+
+          // Attach event listeners using event delegation
+          teamVideoGrid.addEventListener('click', function(event) {
+            const button = event.target.closest('.load-video-btn');
+            if (button) {
+              const playerNumber = button.getAttribute('data-player');
+              const videoUrlOrId = prompt(`Enter YouTube Video URL or ID for Slot ${playerNumber}:`);
+              if (!videoUrlOrId) {
+                console.log(`No input provided for Slot ${playerNumber}.`);
+                return;
+              }
+              const videoId = extractVideoId(videoUrlOrId);
+              if (!videoId) {
+                showToast('Invalid YouTube Video URL or ID', 'error');
+                console.error('Invalid Video ID extracted.');
+                return;
+              }
+              loadVideoIntoSlot(playerNumber, videoId);
+            }
+          });
+        }
+
+        // Function to Save Team Setup
+        function saveTeamSetup(videoIds) {
+          const setupId = generateTeamSetupId(videoIds);
+          localStorage.setItem(`teamSetup-${setupId}`, JSON.stringify(videoIds));
+          return setupId;
+        }
+
+        // Function to Load Team Setup
+        function loadTeamSetup(setupId) {
+          const videoIds = JSON.parse(localStorage.getItem(`teamSetup-${setupId}`));
+          if (videoIds) {
+            clearAllPlayers(); // Clear existing Team POV players
+            videoIds.forEach((videoId, index) => {
+              if (index < 12) { // Ensure we don't exceed 12 slots
+                loadVideoIntoSlot(index + 1, videoId);
+              }
+            });
+            loadCommentsForTeamSetup(setupId);
+            showToast('Team setup loaded successfully!', 'success');
+            console.log(`Team setup ${setupId} loaded.`);
+          } else {
+            showToast('Team setup not found.', 'error');
+            console.error('Team setup not found.');
+          }
+        }
+
+        // Function to Handle Team POV Comments (Future Enhancement)
+        // This can be expanded to allow adding comments specific to team setups
+
+        // Function to Initialize the Application
+        function initializeApp() {
+          // Load Author Name if Exists
+          if (!authorName) {
+            promptForAuthorName();
+          }
+
+          if (loadedVideos.length === 0) {
+            // If no videos are loaded, load the default video
+            const defaultVideoId = 'TKM4IfADlPk'; // Video ID for https://www.youtube.com/watch?v=TKM4IfADlPk
+            const defaultVideo = {
+              id: defaultVideoId,
+              title: 'Default Video',
+              thumbnail: 'https://img.youtube.com/vi/TKM4IfADlPk/mqdefault.jpg',
+              teamView: false
+            };
+            loadedVideos.push(defaultVideo);
+            localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+            loadVideoById(defaultVideoId, defaultVideo.title);
+            showToast('Default video loaded.', 'success');
+            console.log('Default video loaded.');
+          } else {
+            // Optionally, load the first video in the list
+            const firstVideo = loadedVideos.find(v => !v.teamView);
+            if (firstVideo) {
+              loadVideoById(firstVideo.id, firstVideo.title);
+              console.log('Loaded first single view video.');
+            }
+          }
+        }
+
+        // Function to Extract Video ID from Various YouTube URL Formats
+        function extractVideoId(input) {
+          const regex = /(?:\?v=|\/embed\/|\.be\/|\/v\/|\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+          const match = input.match(regex);
+          const videoId = match ? match[1] : input;
+          console.log(`Extracted Video ID: ${videoId} from input: ${input}`);
+          return videoId;
+        }
+
+        // Function to Show Toast Notifications
+        function showToast(message, type = 'success') {
+          console.log(`Showing toast: ${message} | Type: ${type}`);
+          const toastContainer = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+          toast.className = `alert ${type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-error' : 'alert-info')} shadow-lg`;
+          toast.innerHTML = `
+            <div>
+              <span>${message}</span>
+              <button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove()" aria-label="Close toast">&times;</button>
+            </div>
+          `;
+          toastContainer.appendChild(toast);
+          console.log('Toast added to container.');
+
+          setTimeout(() => {
+            toast.remove();
+            console.log('Toast removed after timeout.');
+          }, 3000);
+        }
+
+        // Function to Capitalize First Letter of a String
+        function capitalizeFirstLetter(string) {
+          if (!string) return '';
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Function to Format Seconds to "MM:SS" Format
+        function formatTime(seconds) {
+          const minutes = Math.floor(seconds / 60);
+          const remainingSeconds = Math.floor(seconds % 60);
+          const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+          console.log(`Formatted ${seconds} seconds to "${formattedTime}"`);
+          return formattedTime;
+        }
+
+        // Function to Add Comments to Team POV (Future Enhancement)
+        function addCommentToTeamPov(comment) {
+          // Implement this function to add comments specific to team setups
+        }
+
+        // Function to Populate Video List in Video List View
+        function populateVideoList() {
+          // Separate Single View and Team View videos
+          const singleViewVideos = loadedVideos.filter(v => !v.teamView);
+          const teamViewVideos = loadedVideos.filter(v => v.teamView);
+
+          // Populate Single View Videos
+          singleViewContainer.innerHTML = '';
+          if (singleViewVideos.length === 0) {
+            singleViewContainer.innerHTML = '<p class="text-center text-gray-500">No single view videos loaded.</p>';
+          } else {
+            singleViewVideos.forEach(video => {
+              const videoItem = document.createElement('div');
+              videoItem.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'border', 'rounded-lg', 'hover:bg-gray-100');
+
+              videoItem.innerHTML = `
+                <div class="flex items-center space-x-4">
+                  <img src="${video.thumbnail}" alt="${video.title}" class="w-16 h-9 object-cover rounded">
+                  <div>
+                    <h3 class="font-semibold">${video.title}</h3>
+                    <p class="text-sm text-gray-500">ID: ${video.id}</p>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button class="btn btn-primary btn-sm goto-video-btn" data-video-id="${video.id}">Go To</button>
+                  <button class="btn btn-error btn-sm remove-video-btn" data-video-id="${video.id}" data-video-title="${video.title}">
+                    Remove
+                  </button>
+                </div>
+              `;
+
+              singleViewContainer.appendChild(videoItem);
+            });
+          }
+
+          // Populate Team View Videos
+          teamViewVideos.forEach(video => {
+            const videoItem = document.createElement('div');
+            videoItem.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'border', 'rounded-lg', 'hover:bg-gray-100');
+
+            videoItem.innerHTML = `
+              <div class="flex items-center space-x-4">
+                <img src="${video.thumbnail}" alt="${video.title}" class="w-16 h-9 object-cover rounded">
+                <div>
+                  <h3 class="font-semibold">${video.title}</h3>
+                  <p class="text-sm text-gray-500">ID: ${video.id}</p>
+                </div>
+              </div>
+              <div class="flex space-x-2">
+                <button class="btn btn-primary btn-sm goto-video-btn" data-video-id="${video.id}">Go To</button>
+                <button class="btn btn-error btn-sm remove-video-btn" data-video-id="${video.id}" data-video-title="${video.title}">
+                  Remove
+                </button>
+              </div>
+            `;
+
+            teamViewContainer.appendChild(videoItem);
+          });
+
+          // Add event listeners to all remove buttons
+          document.querySelectorAll('.remove-video-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const videoId = button.getAttribute('data-video-id');
+              const videoTitle = button.getAttribute('data-video-title');
+              if (confirm(`Are you sure you want to remove "${videoTitle}"?`)) {
+                removeVideo(videoId);
+              }
+            });
+          });
+
+          // Add event listeners to all Go To buttons
+          document.querySelectorAll('.goto-video-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const videoId = button.getAttribute('data-video-id');
+              gotoVideo(videoId);
+            });
+          });
+
+          console.log('Video list populated.');
+        }
+
+        // Function to Remove a Single Video
+        function removeVideo(videoId) {
+          // Remove from loadedVideos
+          loadedVideos = loadedVideos.filter(v => v.id !== videoId);
+          localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+
+          // Remove associated comments
+          if (commentsData[videoId]) {
+            delete commentsData[videoId];
+            localStorage.setItem('commentsData', JSON.stringify(commentsData));
+          }
+
+          // Remove from Team POV players if loaded
+          for (let i = 1; i <= 12; i++) {
+            const playerIdentifier = `team-player${i}`;
+            if (players[playerIdentifier] && players[playerIdentifier].getVideoData().video_id === videoId) {
+              players[playerIdentifier].stopVideo();
+              players[playerIdentifier].destroy();
+              delete players[playerIdentifier];
+              document.getElementById(playerIdentifier).innerHTML = '';
+              console.log(`Video removed from Slot ${i}.`);
+            }
+          }
+
+          // If the removed video is currently playing in Home View, load another video
+          if (currentVideoId === videoId) {
+            const firstSingleViewVideo = loadedVideos.find(v => !v.teamView);
+            if (firstSingleViewVideo) {
+              loadVideoById(firstSingleViewVideo.id, firstSingleViewVideo.title);
+            } else {
+              // No videos left, clear player
+              if (players['player-home'] && typeof players['player-home'].destroy === 'function') {
+                players['player-home'].destroy();
+                delete players['player-home'];
+                currentVideoId = null;
+                document.getElementById('player-home').innerHTML = '';
+                document.getElementById('comment-feed-home').innerHTML = '';
+                showToast('No videos loaded. Please add a new video.', 'info');
+                console.log('No videos left to play in Home View.');
+              }
+            }
+          }
+
+          // Update UI
+          populateVideoList();
+          showToast('Video removed successfully.', 'success');
+          console.log(`Video with ID ${videoId} removed.`);
+        }
+
+        // Function to Clear All Team POV Players
+        function clearAllPlayers() {
+          for (let i = 1; i <= 12; i++) {
+            const playerIdentifier = `team-player${i}`;
+            if (players[playerIdentifier] && typeof players[playerIdentifier].destroy === 'function') {
+              players[playerIdentifier].destroy();
+              delete players[playerIdentifier];
+              document.getElementById(playerIdentifier).innerHTML = '';
+              console.log(`Cleared Slot ${i}.`);
+            }
+          }
+        }
+
+        // Function to Navigate to a Specific Video
+        function gotoVideo(videoId) {
+          console.log(`Navigating to video ID: ${videoId}.`);
+          // Find the video details
+          const video = loadedVideos.find(v => v.id === videoId);
+          if (!video) {
+            showToast('Video not found.', 'error');
+            console.error('Video not found in loadedVideos.');
+            return;
+          }
+
+          // Load into Home View
+          loadVideoById(videoId, video.title);
+          // Switch to Home View
+          showView('home');
+          console.log('Switched to Home view after Go To.');
+        }
+
+        // Function to Save Team Setup
+        function saveTeamSetup(videoIds) {
+          const setupId = generateTeamSetupId(videoIds);
+          localStorage.setItem(`teamSetup-${setupId}`, JSON.stringify(videoIds));
+          return setupId;
+        }
+
+        // Function to Show Toast Notifications
+        function showToast(message, type = 'success') {
+          console.log(`Showing toast: ${message} | Type: ${type}`);
+          const toastContainer = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+          toast.className = `alert ${type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-error' : 'alert-info')} shadow-lg`;
+          toast.innerHTML = `
+            <div>
+              <span>${message}</span>
+              <button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove()" aria-label="Close toast">&times;</button>
+            </div>
+          `;
+          toastContainer.appendChild(toast);
+          console.log('Toast added to container.');
+
+          setTimeout(() => {
+            toast.remove();
+            console.log('Toast removed after timeout.');
+          }, 3000);
+        }
+
+        // Function to Capitalize First Letter of a String
+        function capitalizeFirstLetter(string) {
+          if (!string) return '';
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Function to Format Seconds to "MM:SS" Format
+        function formatTime(seconds) {
+          const minutes = Math.floor(seconds / 60);
+          const remainingSeconds = Math.floor(seconds % 60);
+          const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+          console.log(`Formatted ${seconds} seconds to "${formattedTime}"`);
+          return formattedTime;
+        }
+
+        // Settings Form Handling
+        settingsForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const newAuthor = authorInput.value.trim();
+          if (!newAuthor) {
+            showToast('Author name cannot be empty.', 'error');
+            console.warn('Empty author name submission attempted.');
+            return;
+          }
+          authorName = newAuthor;
+          localStorage.setItem('authorName', authorName);
+          showToast('Settings saved successfully!', 'success');
+          console.log('Author name updated:', authorName);
+        });
+
+        // Function to Initialize the Application
+        function initializeApp() {
+          // Load Author Name if Exists
+          if (!authorName) {
+            promptForAuthorName();
+          }
+
+          if (loadedVideos.length === 0) {
+            // If no videos are loaded, load the default video
+            const defaultVideoId = 'TKM4IfADlPk'; // Video ID for https://www.youtube.com/watch?v=TKM4IfADlPk
+            const defaultVideo = {
+              id: defaultVideoId,
+              title: 'Default Video',
+              thumbnail: 'https://img.youtube.com/vi/TKM4IfADlPk/mqdefault.jpg',
+              teamView: false
+            };
+            loadedVideos.push(defaultVideo);
+            localStorage.setItem('loadedVideos', JSON.stringify(loadedVideos));
+            loadVideoById(defaultVideoId, defaultVideo.title);
+            showToast('Default video loaded.', 'success');
+            console.log('Default video loaded.');
+          } else {
+            // Optionally, load the first single view video
+            const firstSingleViewVideo = loadedVideos.find(v => !v.teamView);
+            if (firstSingleViewVideo) {
+              loadVideoById(firstSingleViewVideo.id, firstSingleViewVideo.title);
+              console.log('Loaded first single view video.');
+            }
+          }
+        }
+
+        // Function to Load Comments for Team Setup (Future Enhancement)
+        function loadCommentsForTeamSetup(setupId) {
+          const commentFeed = document.getElementById('comment-feed-team');
+          if (!commentFeed) {
+            console.error('Comment feed for Team POV not found.');
+            return;
+          }
+          commentFeed.innerHTML = '';
+
+          if (commentsData[setupId]) {
+            commentsData[setupId].forEach(comment => {
+              addCommentToFeed(comment, 'team-pov');
+            });
+            console.log(`Loaded ${commentsData[setupId].length} comments for team setup ${setupId}.`);
+          } else {
+            console.log('No comments found for this team setup.');
+          }
+        }
+
+        // Initialize the Application
+        initializeApp();
       });
-
-      function replaceComments(importedData) {
-        const videoId = importedData.videoId;
-        const importedComments = importedData.comments;
-        const authorName = importedData.author;
-
-        // Ensure importedComments is an array
-        if (!Array.isArray(importedComments)) {
-          console.error('Imported comments are not an array:', importedComments);
-          return;
-        }
-
-        if (!commentsData[videoId]) {
-          commentsData[videoId] = {};
-        }
-        // Replace existing comments from the same author
-        commentsData[videoId][authorName] = importedComments;
-
-        localStorage.setItem('commentsData', JSON.stringify(commentsData));
-      }
-
-      // Initialize with the first loaded video if available
-      if (loadedVideos.length > 0 && !currentVideoId) {
-        loadVideoById(loadedVideos[0].id);
-      }
-
-    }); // End of DOMContentLoaded
-  </script>
+    </script>
+  </div>
 </body>
 </html>
